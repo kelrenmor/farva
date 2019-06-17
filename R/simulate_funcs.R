@@ -17,7 +17,7 @@ generate_mean <- function(p){
   # some semi-common, and some super frequent 1s
   # hist(rtruncnorm(1000, a=-0.8, b=0.8, mean=-0.25, sd=0.3), breaks=30)
   # mean(rtruncnorm(1000, a=-0.8, b=0.8, mean=-0.25, sd=0.3)>0)
-  c(rtruncnorm(p, a=-0.8, b=0.8, mean=-0.25, sd=0.3))
+  c(truncnorm::rtruncnorm(p, a=-0.8, b=0.8, mean=-0.25, sd=0.3))
 }
 
 simulate_x_simABCD <- function(num_causes, N, p, k, sigmasq, sim, lambda_generator=simulate_lambda, 
