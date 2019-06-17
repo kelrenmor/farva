@@ -8,7 +8,12 @@
 ##
 ## And with R 3.4.0, and RcppArmadillo 0.7.960.*, we turn C++11 on as OpenMP
 ## support within Armadillo prefers / requires it
-CXX_STD = CXX11
+# CXX_STD = CXX11 # Commented out when below was added.
 
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) 
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+
+# (Added the following because of issues with compilation on MacOS)
+CC=/usr/local/clang4/bin/clang
+CXX=/usr/local/clang4/bin/clang++
+LDFLAGS=-L/usr/local/clang4/lib
