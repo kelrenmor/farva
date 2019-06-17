@@ -1,15 +1,10 @@
-# Load packages
-# rm(list = ls())
-library(mvtnorm)
-library(tidyverse)
-library(truncnorm)
-
 # Set up functions (inspiration and first two from Isaac)
 simulate_lambda <- function(k, p, sigmasq){
   sapply(1:k, function(j) simulate_lambda_column(p, j))
 }
 
 simulate_lambda_column <- function(p, j){ # p is number of symptoms, j is column number being simulated
+  library(tidyverse)
   value = runif(n = p, min = .5, max = 1) * sample(c(-1, 1), size = p, replace=TRUE)
   nonzero = rbernoulli(n = p, p = .4 + .2/j) # higher column number means more chance of 0s
   value[!nonzero] = 0 # replace the not-nonzero entries with 0
@@ -17,6 +12,7 @@ simulate_lambda_column <- function(p, j){ # p is number of symptoms, j is column
 }
 
 generate_mean <- function(p){
+  library(truncnorm)
   # Try to mimic the mean I observe in real data, with lots of mostly-0s, 
   # some semi-common, and some super frequent 1s
   # hist(rtruncnorm(1000, a=-0.8, b=0.8, mean=-0.25, sd=0.3), breaks=30)
@@ -26,6 +22,7 @@ generate_mean <- function(p){
 
 simulate_x_simABCD <- function(num_causes, N, p, k, sigmasq, sim, lambda_generator=simulate_lambda, 
                                N_test=NULL, bin=T, perturb_scale=1, cause_wt=0.5){
+  library(mvtnorm)
   # num_causes is the number of causes to simulate
   # N should be a length num_causes list of the number of simulated observations desired for each cause
   # p is number of symptoms, k is underlying dimension of lambda, sigmaaq is noise variance
@@ -127,6 +124,7 @@ simulate_x_simEFG <- function(num_causes, N, p, k, sigmasq, sim, lambda_generato
   # binary_common is a boolean for whether the binary additive term is common (T) or cause-specific (F, default)
   # common_keep_prop the proportion of the mean vector that is common vs. cause-specific, on average
   # old_meth_bool (T/F) specifies whether common mu/sig should be partly weighted by cause as before 3/24 or as new
+  library(mvtnorm)
   if( !(length(N)==num_causes) ){ stop('N must be length num_causes') }
   if( !(p>=k) ){ stop('Need p>=k') }
   if( !(sigmasq>0) ){ stop('Need sigmasq>0') }
