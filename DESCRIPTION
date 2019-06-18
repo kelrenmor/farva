@@ -1,11 +1,20 @@
 Package: farva
 Type: Package
-Title: What the package does (short line)
+Title: FActor Regression for Verbal Autopsy (FARVA)
 Version: 1.0
 Date: 2019-06-17
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
+Author: Kelly R. Moran
+Maintainer: Kelly R. Moran <kelly.r.moran@duke.edu>
+Description: The FActor Regression for Verbal Autopsy (FARVA) method is a novel class of hierarchical factor regression models that avoid restrictive assumptions of standard methods. This approach allows both the mean and covariance to vary with cause of death category and can include covariate information on the decedent (such as age/gender), region (e.g. malaria endemicity or spatial location), or event (e.g., season, year). Taking a Bayesian approach to inference, this work relies on a Gibbs sampling algorithm.
 License: What license is it under?
-Imports: Rcpp (>= 1.0.1)
-LinkingTo: Rcpp, RcppArmadillo, RcppDist
+Imports: 
+  Rcpp (>= 1.0.1),
+  MCMCpack (>= 1.4-3),
+  mvtnorm (>= 1.0-8)
+Suggests:
+  tidyverse (>= 1.2.1),
+  truncnorm (>= 1.0-8)
+LinkingTo: 
+  Rcpp, 
+  RcppArmadillo, 
+  RcppDist
