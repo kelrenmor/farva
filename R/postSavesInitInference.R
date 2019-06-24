@@ -1,8 +1,10 @@
-postSavesInitInference <- function(num_causes,P,L,save_num_tot,l_sis,l_sim){
+postSavesInitInference <- function(num_causes,P,L,save_num_tot,save_inds_sig,save_inds_mu){
 
   # Set up 0 matrices/arrays/vectors to hold saved parameter values
   mean_all_inf <- cov_all_inf <- list()
   for(c in 1:num_causes){
+    l_sis <- length(save_inds_sig[[c]])
+    l_sim <- length(save_inds_mu[[c]])
     mean_all_inf[[c]] <- array(NA, c(P, l_sim, save_num_tot) )
     cov_all_inf[[c]] <- array(NA, c(P, P, l_sis, save_num_tot) )
   }

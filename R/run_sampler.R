@@ -182,11 +182,11 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   
   # Set up posterior mean save variables
   postSavesnum <- 0
-  post_saves_list <- postSavesInit(num_causes,P,K,L,length(save_inds_sig[[c]]),length(save_inds_mu[[c]]))
+  post_saves_list <- postSavesInit(num_causes,P,K,L,save_inds_sig,save_inds_mu)
   list2env(post_saves_list, environment()) # puts list elements in environment
   if(inference){ 
     post_saves_inf_list <- postSavesInitInference(num_causes,P,L,save_num_tot,
-                                                  length(save_inds_sig[[c]]),length(save_inds_mu[[c]]))
+                                                  save_inds_sig,save_inds_mu)
     list2env(post_saves_inf_list, environment()) # puts list elements in environment
   }
   

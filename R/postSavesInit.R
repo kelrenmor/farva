@@ -1,9 +1,12 @@
-postSavesInit <- function(num_causes,P,K,L,l_sis,l_sim){
 
+postSavesInit <- function(num_causes,P,K,L,save_inds_sig,save_inds_mu){
+  
   # Set up 0 matrices/arrays/vectors to hold saved parameter values
   Omega_all_post <- eta_all_post <- mean_all_post <- cov_all_post <- Theta_all_post <- list()
   for(c in 1:num_causes){
-    Omega_all_post[[c]] <- array(0, c(P,K,l_sis))
+    l_sis <- length(save_inds_sig[[c]])
+    l_sim <- length(save_inds_mu[[c]])
+    Omega_all_post[[c]] <- array(0, c(P,K,z))
     eta_all_post[[c]] <- matrix(0, nrow=K, ncol=l_sim)
     mean_all_post[[c]] <- matrix(0, nrow=P, ncol=l_sim)
     cov_all_post[[c]] <- array(0, c(P,P,l_sis))
