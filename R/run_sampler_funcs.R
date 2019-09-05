@@ -1,3 +1,14 @@
+conv_to_numeric <- function(phmrc_convertB){
+  # Take data frame in OpenVA format and make it 0/1/NA format
+  phmrc_convertB[phmrc_convertB=='.'] <- NA
+  phmrc_convertB[phmrc_convertB=="Y"] <- 1
+  phmrc_convertB[phmrc_convertB==""] <- 0
+  phmrc_convertB[] <- lapply(phmrc_convertB, function(x) {
+    if(is.factor(x) | is.character(x)) as.numeric(as.character(x)) else x
+  })
+  return(phmrc_convertB)
+}
+
 sampleDist = function(n, num_causes, probs) { 
   sample(x = c(1:num_causes), n, replace = T, prob = probs) 
 }
