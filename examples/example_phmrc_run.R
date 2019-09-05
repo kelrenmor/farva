@@ -63,7 +63,7 @@ cod_probs_test = farva_res$indiv_prob # N_test by number of training causes dime
 # (i.e., just put 0 probability for CODs that are unseen in the training data)
 cod_probs = matrix(0, nrow=N_test, ncol=num_causes) # N_test by num_causes matrix
 colnames(cod_probs) = 1:num_causes
-inds_match = match(colnames(cod_pred_test), colnames(cod_probs))
+inds_match = match(colnames(cod_probs_test), colnames(cod_probs))
 cod_probs[,inds_match] = cod_probs_test
 
 # Get model-predicted CSMF for the TEST data
