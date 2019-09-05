@@ -1,9 +1,10 @@
 farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL, 
                       S_test=NULL, X_test_mu=NULL, X_test_sig=NULL, impossible_cause=NULL,
                       save_num_tot=500, burnin=1000, thin=10, L=5, K=5, inference=F,
-                      mu_collapse=T, mc_tot=200, fast_test_samp=T,
+                      mu_collapse=T, mc_tot=200, fast_test_samp=T, 
                       print_prog=T, print_rss=F, save_inds_mu="unique", save_inds_sig="unique"){
-  # - S_mat (required) should be a num_causes list of matrices with TRAINING data. 
+  # - S_mat (required) should be a num_causes list of matrices with TRAINING data with indexing
+  #   from 1 to the number of training causes, i.e. { S_mat[[1]], ..., S_mat[[C]] }. 
   #   Alternatively, S_mat can me a matrix with the first column being a unique COD identifier
   #   and each row corresponding to an individual COD.
   #   In this case, X_all_mu and/or X_all_sig (if not null) must also be matrices with 
@@ -41,6 +42,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   
   # If S_mat is entered in matrix form, convert it to list form used by code.
   if( !is.list(S_mat) ){
+    rename_cols=T
     nullmu = is.null(X_all_mu)
     nullsig = is.null(X_all_sig)
     N_sum = nrow(S_mat)
@@ -53,16 +55,16 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     if( !nullmu ){if( !(N_sum==nrow(X_all_mu)) ){stop("Need nrow(X_all_mu) to equal nrow(S_mat)")}}
     if( !nullsig ){if( !(N_sum==nrow(X_all_sig)) ){stop("Need nrow(X_all_sig) to equal nrow(S_mat)")}}
     cods = S_mat[,ind_rm]
-    un_cods = unique(cods)
+    un_cods = sort( unique(cods) )
     num_causes = length(un_cods)
     S_mat_tmp = list()
     if( !nullmu ){X_all_mu_tmp = list()}
     if( !nullsig ){X_all_sig_tmp = list()}
     for(c in 1:num_causes){
       ind_cod = which(cods == un_cods[c])
-      S_mat_tmp[[c]] = S_mat[ind_cod,-ind_rm]
-      if( !nullmu ){X_all_mu_tmp[[c]] = X_all_mu[ind_cod,]}
-      if( !nullsig ){X_all_sig_tmp[[c]] = X_all_sig[ind_cod,]}
+      S_mat_tmp[[c]] = S_mat[ind_cod,-ind_rm, drop=F]
+      if( !nullmu ){X_all_mu_tmp[[c]] = X_all_mu[ind_cod,,drop=F]}
+      if( !nullsig ){X_all_sig_tmp[[c]] = X_all_sig[ind_cod,,drop=F]}
     }
     S_mat = S_mat_tmp # replace S_mat with list version!
     if( !nullmu ){X_all_mu = X_all_mu_tmp} # replace X_all_mu with list version!
@@ -613,7 +615,8 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   Delta_post <- Delta_post/postSavesnum
   tau_delta_post <- tau_delta_post/postSavesnum
   tau_theta_post <- tau_theta_post/postSavesnum
-
+  
+  if( rename_cols ){ colnames(indiv_prob) <- rownames(csmf_test_save) <- un_cods }
   if( is.null(S_test) ){ csmf_test_save = cod_test_save = indiv_prob = NULL }
   if( !inference ){ mean_all_inf = cov_all_inf = tau_delta_inf = tau_theta_post = Sigma_0_vec_inf = NULL }
   
