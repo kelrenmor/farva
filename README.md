@@ -16,8 +16,11 @@ More details on the algorithm and the problem background are available in the ma
 To install the farva library, use the `devtools` package.
 
 ```
-library(devtools)
-devtools::install_github('kelrenmor/farva', quiet=T, upgrade=F, dependencies=T)
+# Install the remotes package if not already done
+install.packages('remotes')
+
+# Install and load the farva package
+remotes::install_github('kelrenmor/farva', quiet=T, dependencies=T)
 library(farva)
 ```
 
