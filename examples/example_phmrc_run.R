@@ -8,8 +8,7 @@
 rm(list=ls())
 
 # Install and load farva library, load other required libraries
-library(devtools)
-devtools::install_github('kelrenmor/farva', quiet=T, upgrade=F, dependencies=T)
+remotes::install_github('kelrenmor/farva', quiet=T, dependencies=T)
 library(farva)
 library(openVA)
 
