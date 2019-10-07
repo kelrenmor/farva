@@ -1,18 +1,2 @@
-## With R 3.1.0 or later, you can uncomment the following line to tell R to 
-## enable compilation with C++11 (where available)
-##
-## Also, OpenMP support in Armadillo prefers C++11 support. However, for wider
-## availability of the package we do not yet enforce this here.  It is however
-## recommended for client packages to set it.
-##
-## And with R 3.4.0, and RcppArmadillo 0.7.960.*, we turn C++11 on as OpenMP
-## support within Armadillo prefers / requires it
-# CXX_STD = CXX11 # Commented out when below was added.
-
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) 
-PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
-
-# (Added the following because of issues with compilation on MacOS)
-CC=/usr/local/clang4/bin/clang
-CXX=/usr/local/clang4/bin/clang++
-LDFLAGS=-L/usr/local/clang4/lib
+PKG_CPPFLAGS = -I"../include" -DUSE_DOUBLE -DEIGEN_NO_DEBUG  -DR_COMPILATION=TRUE --std=c++11 -O3 -funroll-loops -ffast-math -ffinite-math-only -g -Wno-ignored-attributes 
+PKG_LIBS = -ldl
