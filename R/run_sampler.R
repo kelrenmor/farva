@@ -200,7 +200,6 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   for(ss in 1:nsamps){
     
     if( ss%in%ten_perc & print_prog ){ print(paste("sample",ss,"of",nsamps)) }
-    print(paste("sample",ss,"of",nsamps))
     
     ############ UPDATE \mu_{c,j} ############
     ############ and hierarchical regression params for each
