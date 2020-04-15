@@ -2,7 +2,8 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
                       S_test=NULL, X_test_mu=NULL, X_test_sig=NULL, impossible_cause=NULL,
                       save_num_tot=500, burnin=1000, thin=10, L=5, K=5, inference=F,
                       mu_collapse=T, mc_tot=200, fast_test_samp=T, 
-                      print_prog=T, print_rss=F, save_inds_mu="unique", save_inds_sig="unique"){
+                      print_prog=T, print_rss=F, save_inds_mu="unique", save_inds_sig="unique",
+                      Lam0_mult=1, S0_mult=1, nu_add=2){
   # - S_mat (required) should be a num_causes list of matrices with TRAINING data with indexing
   #   from 1 to the number of training causes, i.e. { S_mat[[1]], ..., S_mat[[C]] }. 
   #   Alternatively, S_mat can me a matrix with the first column being a unique COD identifier
@@ -28,6 +29,8 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   # - thin is the total number of samples per one saved sample (default 10).
   # - save_inds_mu and save_inds_sig specify which of cov_all, mean_all, omega_all, eta_all should be 
   #   saved, "unique" (default) for unique cov combos, "all" for all (slowest), "first" for first
+  # - Lam0_mult adjusts the prior on \beta_{\mu} ~ N(0, Lam0_mult * I).
+  # - S0_mult and nu_add adjust the prior on \beta_{\Sigma} ~ IW(B + 2 + nu_add, S0_mult * I).
   
   ############ SETUP (PACKAGES) ############
   library(Rcpp)
@@ -104,13 +107,13 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   # coefficient vectors associated with entries of the matrices \xi_c 
   # and \psi_c (c in 1...C)
   mu_0_beta <- matrix(0,B_sig) # B_sig x 1 vector
-  Lambda_0_beta <- diag(1,B_sig) # B_sig x B_sig matrix
-  v0_beta <- B_sig+2 # integer
-  S0_beta <- diag(1,B_sig) # B_sig x B_sig matrix
+  Lambda_0_beta <- Lam0_mult * diag(1,B_sig) # B_sig x B_sig matrix
+  v0_beta <- B_sig + 2 + nu_add # integer
+  S0_beta <- S0_mult * diag(1,B_sig) # B_sig x B_sig matrix
   mu_0_alpha <- mu_0_gamma <- matrix(0,B_mu) # B_mu x 1 vector
-  Lambda_0_alpha <- Lambda_0_gamma <- diag(1,B_mu) # B_mu x B_mu matrix
-  v0_alpha <- v0_gamma <- B_mu+2 # integer
-  S0_alpha <- S0_gamma <- diag(1,B_mu) # B_mu x B_mu matrix
+  Lambda_0_alpha <- Lambda_0_gamma <- Lam0_mult * diag(1,B_mu) # B_mu x B_mu matrix
+  v0_alpha <- v0_gamma <- B_mu + 2 + nu_add # integer
+  S0_alpha <- S0_gamma <- S0_mult * diag(1,B_mu) # B_mu x B_mu matrix
   a_xi <- a_psi <- 1 # positive real
   b_xi <- b_psi <- 1 # positive real
   # Assign priors for the population-level mean and shrinkage prior for the 
@@ -202,7 +205,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     ############ UPDATE \mu_{c,j} ############
     ############ and hierarchical regression params for each
     
-    if(mu_collapse==T ){ # If we have z_i=\Lambda\eta_i, \eta_i~N(\psi x, I), fix mu_all[[c]] to be 0-vec.
+    if( mu_collapse ){ # If we have z_i=\Lambda\eta_i, \eta_i~N(\psi x, I), fix mu_all[[c]] to be 0-vec.
       
       if( ss==1 ){ # Only need to set once, then it just stays the same!
         for(c in 1:num_causes){
@@ -328,7 +331,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
       }
     }
     
-    if(mu_collapse==T){ # If we have z_i=\Lambda\eta_i, \eta_i~N(\psi x, I) 
+    if( mu_collapse ){ # If we have z_i=\Lambda\eta_i, \eta_i~N(\psi x, I) 
     
       # Sample \alpha_{c,k} for each cause c and entry k\in{1,...,K};
       # \alpha_{c,k} is length B_mu vector with entry b the coefficient for covariate b for \psi_{c,k}
@@ -570,7 +573,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
       ############ (if you have people with unknown COD)
       
       if( !is.null(S_test) ){
-        if( mu_collapse==T ){ gamma_c_all=list(); for(c in 1:num_causes){gamma_c_all[[c]]=matrix(0,nrow=1,ncol=P)} }
+        if( mu_collapse ){ gamma_c_all=list(); for(c in 1:num_causes){gamma_c_all[[c]]=matrix(0,nrow=1,ncol=P)} }
         if( fast_test_samp | !(sum(is_binary)==P | sum(!is_binary)==P) ){
           # If you have mixed data, or want faster sampling, then sample via MC approximation.
           pi_SgivenY <- get_piSgivenY(N_test, num_causes, P, mc_tot, cov_incl, fix_xi, X_test_mu, X_test_sig, S_test,
