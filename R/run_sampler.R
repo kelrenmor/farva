@@ -45,7 +45,6 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   
   # If S_mat is entered in matrix form, convert it to list form used by code.
   if( !is.list(S_mat) ){
-    rename_cols=T
     nullmu = is.null(X_all_mu)
     nullsig = is.null(X_all_sig)
     N_sum = nrow(S_mat)
@@ -618,7 +617,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   tau_delta_post <- tau_delta_post/postSavesnum
   tau_theta_post <- tau_theta_post/postSavesnum
   
-  if( rename_cols ){ colnames(indiv_prob) <- rownames(csmf_test_save) <- un_cods }
+  colnames(indiv_prob) <- rownames(csmf_test_save) <- un_cods
   if( is.null(S_test) ){ csmf_test_save = cod_test_save = indiv_prob = NULL }
   if( !inference ){ mean_all_inf = cov_all_inf = tau_delta_inf = tau_theta_post = Sigma_0_vec_inf = NULL }
   
