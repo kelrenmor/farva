@@ -282,7 +282,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     for(l in 1:L){
       for(k in 1:K){
         beta_all[,l,k] <- sample_beta_mu(mu_0_beta, Lambda_0_beta, num_causes, 
-                                         matrix(beta_means[,l,k]), as.matrix(beta_Sigma[,,l,k]))
+                                         beta_means[,l,k,drop=F], as.matrix(beta_Sigma[,,l,k]))
       }
     }
     
@@ -290,7 +290,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     # the result is a B_sig x B_sig covariance matrix with entry b1, b2 being the cov between coef b1 and b2
     for(l in 1:L){
       for(k in 1:K){
-        beta_Sigma[,,l,k] <- sample_beta_Sigma(v0_beta, S0_beta, num_causes, beta_all[,l,k], 
+        beta_Sigma[,,l,k] <- sample_beta_Sigma(v0_beta, S0_beta, num_causes, beta_all[,l,k,drop=F], 
                                                do.call(cbind, 
                                                        rapply(beta_c_all, classes='array', how='list', 
                                                               f=function(x) x[, l, k, drop=FALSE])) )
