@@ -17,20 +17,12 @@ get_Omega_i <- function(Theta_c, xi_i) {
     .Call(`_farva_get_Omega_i`, Theta_c, xi_i)
 }
 
-sample_xi_ilk <- function(sig_sq_xi, beta_c, X_i, Sigma_0_vec, Theta_c, xi_i, z_i, eta_i, l_samp, k_samp, fix_xi) {
-    .Call(`_farva_sample_xi_ilk`, sig_sq_xi, beta_c, X_i, Sigma_0_vec, Theta_c, xi_i, z_i, eta_i, l_samp, k_samp, fix_xi)
+sample_xi_all <- function(num_causes, L, K, N, beta_c_all, X_all_sig, Sigma_0_vec, Theta_all, xi_all, z_all, eta_all) {
+    .Call(`_farva_sample_xi_all`, num_causes, L, K, N, beta_c_all, X_all_sig, Sigma_0_vec, Theta_all, xi_all, z_all, eta_all)
 }
 
-sample_xi_all <- function(num_causes, L, K, N, sigSqXi_all, beta_c_all, X_all_sig, Sigma_0_vec, Theta_all, xi_all, z_all, eta_all, fix_xi) {
-    .Call(`_farva_sample_xi_all`, num_causes, L, K, N, sigSqXi_all, beta_c_all, X_all_sig, Sigma_0_vec, Theta_all, xi_all, z_all, eta_all, fix_xi)
-}
-
-sample_psi_ik <- function(sig_sq_psi, alpha_c, X_i, Sigma_0_vec, Omega_i, psi_i, z_i, nu_i, k_samp) {
-    .Call(`_farva_sample_psi_ik`, sig_sq_psi, alpha_c, X_i, Sigma_0_vec, Omega_i, psi_i, z_i, nu_i, k_samp)
-}
-
-sample_psi_all <- function(N, K, num_causes, sig_sq_psi, alpha_c_all, X_all_mu, Sigma_0_vec, Omega_all, psi_all, z_all, nu_all) {
-    .Call(`_farva_sample_psi_all`, N, K, num_causes, sig_sq_psi, alpha_c_all, X_all_mu, Sigma_0_vec, Omega_all, psi_all, z_all, nu_all)
+sample_psi_i <- function(SigPsi, alpha_c, X_i, Sigma_0_vec, Omega_i, z_i) {
+    .Call(`_farva_sample_psi_i`, SigPsi, alpha_c, X_i, Sigma_0_vec, Omega_i, z_i)
 }
 
 sample_Theta_j <- function(sig_sq_j, xi_c, eta_c, z_cj, Delta_j, phi_j, tau) {
@@ -61,6 +53,10 @@ sample_beta_c <- function(y, mu_beta, Sigma_beta, sig_sq, XtX, Xt) {
     .Call(`_farva_sample_beta_c`, y, mu_beta, Sigma_beta, sig_sq, XtX, Xt)
 }
 
+sample_betaxi_c <- function(z_c, Sig0vec, eta_c, Theta_c, beta_c, mu_beta, Sigma_beta, XXt_c, X_c, k_get, l_get) {
+    .Call(`_farva_sample_betaxi_c`, z_c, Sig0vec, eta_c, Theta_c, beta_c, mu_beta, Sigma_beta, XXt_c, X_c, k_get, l_get)
+}
+
 sample_beta_mu <- function(mu_0, Lambda_0, C, beta_mean, Sigma_beta) {
     .Call(`_farva_sample_beta_mu`, mu_0, Lambda_0, C, beta_mean, Sigma_beta)
 }
@@ -73,8 +69,8 @@ sample_sigsq <- function(a, b, n, RSS) {
     .Call(`_farva_sample_sigsq`, a, b, n, RSS)
 }
 
-sample_xi_istar <- function(sig_sq_xi, beta_c, X_istar, fix) {
-    .Call(`_farva_sample_xi_istar`, sig_sq_xi, beta_c, X_istar, fix)
+sample_xi_istar <- function(beta_c, X_istar) {
+    .Call(`_farva_sample_xi_istar`, beta_c, X_istar)
 }
 
 sample_psi_istar <- function(sig_sq_psi, alpha_c, X_istar, fix_psi) {
@@ -85,7 +81,7 @@ sample_z_mean_cov_all <- function(S_mat, Omega_all, eta_all, N, Sig0vec, z_all_n
     .Call(`_farva_sample_z_mean_cov_all`, S_mat, Omega_all, eta_all, N, Sig0vec, z_all_nominus, z_all, P, is_binary, mu_all, mu_collapse, psi_all)
 }
 
-get_piSgivenY <- function(N_test, num_causes, P, mc_tot, cov_incl, fix_xi, X_test_mu, X_test_sig, S_test, sigSqXi_all, beta_c_all, Theta_all, mu_collapse, gamma_c_all, alpha_c_all, sigSqpsi_all, Sigma_0, is_binary) {
-    .Call(`_farva_get_piSgivenY`, N_test, num_causes, P, mc_tot, cov_incl, fix_xi, X_test_mu, X_test_sig, S_test, sigSqXi_all, beta_c_all, Theta_all, mu_collapse, gamma_c_all, alpha_c_all, sigSqpsi_all, Sigma_0, is_binary)
+get_piSgivenY <- function(N_test, num_causes, P, mc_tot, cov_incl, X_test_mu, X_test_sig, S_test, beta_c_all, Theta_all, mu_collapse, gamma_c_all, alpha_c_all, sigSqpsi_all, Sigma_0, is_binary) {
+    .Call(`_farva_get_piSgivenY`, N_test, num_causes, P, mc_tot, cov_incl, X_test_mu, X_test_sig, S_test, beta_c_all, Theta_all, mu_collapse, gamma_c_all, alpha_c_all, sigSqpsi_all, Sigma_0, is_binary)
 }
 

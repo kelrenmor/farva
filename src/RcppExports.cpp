@@ -57,30 +57,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sample_xi_ilk
-double sample_xi_ilk(double sig_sq_xi, arma::vec beta_c, arma::vec X_i, arma::vec Sigma_0_vec, arma::mat Theta_c, arma::mat xi_i, arma::vec z_i, arma::vec eta_i, int l_samp, int k_samp, int fix_xi);
-RcppExport SEXP _farva_sample_xi_ilk(SEXP sig_sq_xiSEXP, SEXP beta_cSEXP, SEXP X_iSEXP, SEXP Sigma_0_vecSEXP, SEXP Theta_cSEXP, SEXP xi_iSEXP, SEXP z_iSEXP, SEXP eta_iSEXP, SEXP l_sampSEXP, SEXP k_sampSEXP, SEXP fix_xiSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type sig_sq_xi(sig_sq_xiSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type beta_c(beta_cSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type X_i(X_iSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type Sigma_0_vec(Sigma_0_vecSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Theta_c(Theta_cSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type xi_i(xi_iSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type z_i(z_iSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type eta_i(eta_iSEXP);
-    Rcpp::traits::input_parameter< int >::type l_samp(l_sampSEXP);
-    Rcpp::traits::input_parameter< int >::type k_samp(k_sampSEXP);
-    Rcpp::traits::input_parameter< int >::type fix_xi(fix_xiSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_xi_ilk(sig_sq_xi, beta_c, X_i, Sigma_0_vec, Theta_c, xi_i, z_i, eta_i, l_samp, k_samp, fix_xi));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sample_xi_all
-Rcpp::List sample_xi_all(int num_causes, int L, int K, Rcpp::List N, arma::mat sigSqXi_all, Rcpp::List beta_c_all, Rcpp::List X_all_sig, arma::vec Sigma_0_vec, Rcpp::List Theta_all, Rcpp::List xi_all, Rcpp::List z_all, Rcpp::List eta_all, int fix_xi);
-RcppExport SEXP _farva_sample_xi_all(SEXP num_causesSEXP, SEXP LSEXP, SEXP KSEXP, SEXP NSEXP, SEXP sigSqXi_allSEXP, SEXP beta_c_allSEXP, SEXP X_all_sigSEXP, SEXP Sigma_0_vecSEXP, SEXP Theta_allSEXP, SEXP xi_allSEXP, SEXP z_allSEXP, SEXP eta_allSEXP, SEXP fix_xiSEXP) {
+Rcpp::List sample_xi_all(int num_causes, int L, int K, Rcpp::List N, Rcpp::List beta_c_all, Rcpp::List X_all_sig, arma::vec Sigma_0_vec, Rcpp::List Theta_all, Rcpp::List xi_all, Rcpp::List z_all, Rcpp::List eta_all);
+RcppExport SEXP _farva_sample_xi_all(SEXP num_causesSEXP, SEXP LSEXP, SEXP KSEXP, SEXP NSEXP, SEXP beta_c_allSEXP, SEXP X_all_sigSEXP, SEXP Sigma_0_vecSEXP, SEXP Theta_allSEXP, SEXP xi_allSEXP, SEXP z_allSEXP, SEXP eta_allSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,7 +67,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type L(LSEXP);
     Rcpp::traits::input_parameter< int >::type K(KSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type sigSqXi_all(sigSqXi_allSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type beta_c_all(beta_c_allSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type X_all_sig(X_all_sigSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type Sigma_0_vec(Sigma_0_vecSEXP);
@@ -96,48 +74,23 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::List >::type xi_all(xi_allSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type z_all(z_allSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type eta_all(eta_allSEXP);
-    Rcpp::traits::input_parameter< int >::type fix_xi(fix_xiSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_xi_all(num_causes, L, K, N, sigSqXi_all, beta_c_all, X_all_sig, Sigma_0_vec, Theta_all, xi_all, z_all, eta_all, fix_xi));
+    rcpp_result_gen = Rcpp::wrap(sample_xi_all(num_causes, L, K, N, beta_c_all, X_all_sig, Sigma_0_vec, Theta_all, xi_all, z_all, eta_all));
     return rcpp_result_gen;
 END_RCPP
 }
-// sample_psi_ik
-double sample_psi_ik(double sig_sq_psi, arma::vec alpha_c, arma::vec X_i, arma::vec Sigma_0_vec, arma::mat Omega_i, arma::vec psi_i, arma::vec z_i, arma::vec nu_i, int k_samp);
-RcppExport SEXP _farva_sample_psi_ik(SEXP sig_sq_psiSEXP, SEXP alpha_cSEXP, SEXP X_iSEXP, SEXP Sigma_0_vecSEXP, SEXP Omega_iSEXP, SEXP psi_iSEXP, SEXP z_iSEXP, SEXP nu_iSEXP, SEXP k_sampSEXP) {
+// sample_psi_i
+arma::vec sample_psi_i(arma::vec SigPsi, arma::mat alpha_c, arma::vec X_i, arma::vec Sigma_0_vec, arma::mat Omega_i, arma::vec z_i);
+RcppExport SEXP _farva_sample_psi_i(SEXP SigPsiSEXP, SEXP alpha_cSEXP, SEXP X_iSEXP, SEXP Sigma_0_vecSEXP, SEXP Omega_iSEXP, SEXP z_iSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type sig_sq_psi(sig_sq_psiSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type alpha_c(alpha_cSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type SigPsi(SigPsiSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type alpha_c(alpha_cSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type X_i(X_iSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type Sigma_0_vec(Sigma_0_vecSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Omega_i(Omega_iSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type psi_i(psi_iSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type z_i(z_iSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type nu_i(nu_iSEXP);
-    Rcpp::traits::input_parameter< int >::type k_samp(k_sampSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_psi_ik(sig_sq_psi, alpha_c, X_i, Sigma_0_vec, Omega_i, psi_i, z_i, nu_i, k_samp));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_psi_all
-Rcpp::List sample_psi_all(Rcpp::List N, int K, int num_causes, arma::vec sig_sq_psi, Rcpp::List alpha_c_all, Rcpp::List X_all_mu, arma::vec Sigma_0_vec, Rcpp::List Omega_all, Rcpp::List psi_all, Rcpp::List z_all, Rcpp::List nu_all);
-RcppExport SEXP _farva_sample_psi_all(SEXP NSEXP, SEXP KSEXP, SEXP num_causesSEXP, SEXP sig_sq_psiSEXP, SEXP alpha_c_allSEXP, SEXP X_all_muSEXP, SEXP Sigma_0_vecSEXP, SEXP Omega_allSEXP, SEXP psi_allSEXP, SEXP z_allSEXP, SEXP nu_allSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::List >::type N(NSEXP);
-    Rcpp::traits::input_parameter< int >::type K(KSEXP);
-    Rcpp::traits::input_parameter< int >::type num_causes(num_causesSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type sig_sq_psi(sig_sq_psiSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type alpha_c_all(alpha_c_allSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type X_all_mu(X_all_muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type Sigma_0_vec(Sigma_0_vecSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type Omega_all(Omega_allSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type psi_all(psi_allSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type z_all(z_allSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type nu_all(nu_allSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_psi_all(N, K, num_causes, sig_sq_psi, alpha_c_all, X_all_mu, Sigma_0_vec, Omega_all, psi_all, z_all, nu_all));
+    rcpp_result_gen = Rcpp::wrap(sample_psi_i(SigPsi, alpha_c, X_i, Sigma_0_vec, Omega_i, z_i));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -250,6 +203,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_betaxi_c
+arma::mat sample_betaxi_c(arma::mat z_c, arma::vec Sig0vec, arma::mat eta_c, arma::mat Theta_c, arma::cube beta_c, arma::vec mu_beta, arma::mat Sigma_beta, arma::cube XXt_c, arma::mat X_c, int k_get, int l_get);
+RcppExport SEXP _farva_sample_betaxi_c(SEXP z_cSEXP, SEXP Sig0vecSEXP, SEXP eta_cSEXP, SEXP Theta_cSEXP, SEXP beta_cSEXP, SEXP mu_betaSEXP, SEXP Sigma_betaSEXP, SEXP XXt_cSEXP, SEXP X_cSEXP, SEXP k_getSEXP, SEXP l_getSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type z_c(z_cSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type Sig0vec(Sig0vecSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type eta_c(eta_cSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Theta_c(Theta_cSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type beta_c(beta_cSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type mu_beta(mu_betaSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Sigma_beta(Sigma_betaSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type XXt_c(XXt_cSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X_c(X_cSEXP);
+    Rcpp::traits::input_parameter< int >::type k_get(k_getSEXP);
+    Rcpp::traits::input_parameter< int >::type l_get(l_getSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_betaxi_c(z_c, Sig0vec, eta_c, Theta_c, beta_c, mu_beta, Sigma_beta, XXt_c, X_c, k_get, l_get));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_beta_mu
 arma::mat sample_beta_mu(arma::vec mu_0, arma::mat Lambda_0, double C, arma::vec beta_mean, arma::mat Sigma_beta);
 RcppExport SEXP _farva_sample_beta_mu(SEXP mu_0SEXP, SEXP Lambda_0SEXP, SEXP CSEXP, SEXP beta_meanSEXP, SEXP Sigma_betaSEXP) {
@@ -295,16 +269,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_xi_istar
-arma::mat sample_xi_istar(arma::mat sig_sq_xi, arma::cube beta_c, arma::vec X_istar, int fix);
-RcppExport SEXP _farva_sample_xi_istar(SEXP sig_sq_xiSEXP, SEXP beta_cSEXP, SEXP X_istarSEXP, SEXP fixSEXP) {
+arma::mat sample_xi_istar(arma::cube beta_c, arma::vec X_istar);
+RcppExport SEXP _farva_sample_xi_istar(SEXP beta_cSEXP, SEXP X_istarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type sig_sq_xi(sig_sq_xiSEXP);
     Rcpp::traits::input_parameter< arma::cube >::type beta_c(beta_cSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type X_istar(X_istarSEXP);
-    Rcpp::traits::input_parameter< int >::type fix(fixSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_xi_istar(sig_sq_xi, beta_c, X_istar, fix));
+    rcpp_result_gen = Rcpp::wrap(sample_xi_istar(beta_c, X_istar));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -345,8 +317,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // get_piSgivenY
-arma::mat get_piSgivenY(int N_test, int num_causes, int P, int mc_tot, bool cov_incl, int fix_xi, arma::mat X_test_mu, arma::mat X_test_sig, arma::mat S_test, arma::mat sigSqXi_all, Rcpp::List beta_c_all, Rcpp::List Theta_all, bool mu_collapse, Rcpp::List gamma_c_all, Rcpp::List alpha_c_all, arma::mat sigSqpsi_all, arma::mat Sigma_0, arma::vec is_binary);
-RcppExport SEXP _farva_get_piSgivenY(SEXP N_testSEXP, SEXP num_causesSEXP, SEXP PSEXP, SEXP mc_totSEXP, SEXP cov_inclSEXP, SEXP fix_xiSEXP, SEXP X_test_muSEXP, SEXP X_test_sigSEXP, SEXP S_testSEXP, SEXP sigSqXi_allSEXP, SEXP beta_c_allSEXP, SEXP Theta_allSEXP, SEXP mu_collapseSEXP, SEXP gamma_c_allSEXP, SEXP alpha_c_allSEXP, SEXP sigSqpsi_allSEXP, SEXP Sigma_0SEXP, SEXP is_binarySEXP) {
+arma::mat get_piSgivenY(int N_test, int num_causes, int P, int mc_tot, bool cov_incl, arma::mat X_test_mu, arma::mat X_test_sig, arma::mat S_test, Rcpp::List beta_c_all, Rcpp::List Theta_all, bool mu_collapse, Rcpp::List gamma_c_all, Rcpp::List alpha_c_all, arma::mat sigSqpsi_all, arma::mat Sigma_0, arma::vec is_binary);
+RcppExport SEXP _farva_get_piSgivenY(SEXP N_testSEXP, SEXP num_causesSEXP, SEXP PSEXP, SEXP mc_totSEXP, SEXP cov_inclSEXP, SEXP X_test_muSEXP, SEXP X_test_sigSEXP, SEXP S_testSEXP, SEXP beta_c_allSEXP, SEXP Theta_allSEXP, SEXP mu_collapseSEXP, SEXP gamma_c_allSEXP, SEXP alpha_c_allSEXP, SEXP sigSqpsi_allSEXP, SEXP Sigma_0SEXP, SEXP is_binarySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -355,11 +327,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type P(PSEXP);
     Rcpp::traits::input_parameter< int >::type mc_tot(mc_totSEXP);
     Rcpp::traits::input_parameter< bool >::type cov_incl(cov_inclSEXP);
-    Rcpp::traits::input_parameter< int >::type fix_xi(fix_xiSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type X_test_mu(X_test_muSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type X_test_sig(X_test_sigSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type S_test(S_testSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type sigSqXi_all(sigSqXi_allSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type beta_c_all(beta_c_allSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type Theta_all(Theta_allSEXP);
     Rcpp::traits::input_parameter< bool >::type mu_collapse(mu_collapseSEXP);
@@ -368,7 +338,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type sigSqpsi_all(sigSqpsi_allSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Sigma_0(Sigma_0SEXP);
     Rcpp::traits::input_parameter< arma::vec >::type is_binary(is_binarySEXP);
-    rcpp_result_gen = Rcpp::wrap(get_piSgivenY(N_test, num_causes, P, mc_tot, cov_incl, fix_xi, X_test_mu, X_test_sig, S_test, sigSqXi_all, beta_c_all, Theta_all, mu_collapse, gamma_c_all, alpha_c_all, sigSqpsi_all, Sigma_0, is_binary));
+    rcpp_result_gen = Rcpp::wrap(get_piSgivenY(N_test, num_causes, P, mc_tot, cov_incl, X_test_mu, X_test_sig, S_test, beta_c_all, Theta_all, mu_collapse, gamma_c_all, alpha_c_all, sigSqpsi_all, Sigma_0, is_binary));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -378,10 +348,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_farva_rmvnrnd", (DL_FUNC) &_farva_rmvnrnd, 3},
     {"_farva_rnormArma", (DL_FUNC) &_farva_rnormArma, 2},
     {"_farva_get_Omega_i", (DL_FUNC) &_farva_get_Omega_i, 2},
-    {"_farva_sample_xi_ilk", (DL_FUNC) &_farva_sample_xi_ilk, 11},
-    {"_farva_sample_xi_all", (DL_FUNC) &_farva_sample_xi_all, 13},
-    {"_farva_sample_psi_ik", (DL_FUNC) &_farva_sample_psi_ik, 9},
-    {"_farva_sample_psi_all", (DL_FUNC) &_farva_sample_psi_all, 11},
+    {"_farva_sample_xi_all", (DL_FUNC) &_farva_sample_xi_all, 11},
+    {"_farva_sample_psi_i", (DL_FUNC) &_farva_sample_psi_i, 6},
     {"_farva_sample_Theta_j", (DL_FUNC) &_farva_sample_Theta_j, 7},
     {"_farva_sample_Delta_jl", (DL_FUNC) &_farva_sample_Delta_jl, 5},
     {"_farva_sample_nu", (DL_FUNC) &_farva_sample_nu, 5},
@@ -389,13 +357,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_farva_sample_delta_theta", (DL_FUNC) &_farva_sample_delta_theta, 7},
     {"_farva_sample_delta_Delta", (DL_FUNC) &_farva_sample_delta_Delta, 6},
     {"_farva_sample_beta_c", (DL_FUNC) &_farva_sample_beta_c, 6},
+    {"_farva_sample_betaxi_c", (DL_FUNC) &_farva_sample_betaxi_c, 11},
     {"_farva_sample_beta_mu", (DL_FUNC) &_farva_sample_beta_mu, 5},
     {"_farva_sample_beta_Sigma", (DL_FUNC) &_farva_sample_beta_Sigma, 5},
     {"_farva_sample_sigsq", (DL_FUNC) &_farva_sample_sigsq, 4},
-    {"_farva_sample_xi_istar", (DL_FUNC) &_farva_sample_xi_istar, 4},
+    {"_farva_sample_xi_istar", (DL_FUNC) &_farva_sample_xi_istar, 2},
     {"_farva_sample_psi_istar", (DL_FUNC) &_farva_sample_psi_istar, 4},
     {"_farva_sample_z_mean_cov_all", (DL_FUNC) &_farva_sample_z_mean_cov_all, 12},
-    {"_farva_get_piSgivenY", (DL_FUNC) &_farva_get_piSgivenY, 18},
+    {"_farva_get_piSgivenY", (DL_FUNC) &_farva_get_piSgivenY, 16},
     {NULL, NULL, 0}
 };
 
