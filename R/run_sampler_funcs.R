@@ -13,15 +13,15 @@ sampleDist = function(n, num_causes, probs) {
   sample(x = c(1:num_causes), n, replace = T, prob = probs) 
 }
 
-get_piSgivenY_analytic = function(sigSqXi_all, sigSqpsi_all, beta_c_all, alpha_c_all, 
-                                  X_test_sig, X_test_mu, fix_xi, Theta_all,
+get_piSgivenY_analytic = function(sigSqpsi_all, beta_c_all, alpha_c_all, 
+                                  X_test_sig, X_test_mu, Theta_all,
                                   P, num_causes, N_test, mu_collapse, gamma_c_all, Sigma_0, 
                                   S_test, is_binary) {
   pi_SgivenY <- matrix(0, nrow=N_test, ncol=num_causes)
   for( c in 1:num_causes ){
     if( !cov_incl ){ # no covariate info here, so only need to do once per cause
       # "Sample" xi (but since it's fixed, just get beta X for person i)
-      xi_star <- sample_xi_istar(sigSqXi_all, beta_c_all[[c]], matrix(X_test_sig[1,]), fix_xi)
+      xi_star <- sample_xi_istar(beta_c_all[[c]], matrix(X_test_sig[1,]))
       # Calculate Omega_star
       Omega_star <- get_Omega_i(Theta_all[[c]], xi_star)
       # Get mean and covariance for person i assuming their COD is c
@@ -36,7 +36,7 @@ get_piSgivenY_analytic = function(sigSqXi_all, sigSqpsi_all, beta_c_all, alpha_c
     for( i in 1:N_test ){
       if( cov_incl ){
         # "Sample" xi (but since it's fixed, just get beta X for person i)
-        xi_star <- sample_xi_istar(sigSqXi_all, beta_c_all[[c]], matrix(X_test_sig[i,]), fix_xi)
+        xi_star <- sample_xi_istar(beta_c_all[[c]], matrix(X_test_sig[i,]))
         # Calculate Omega_star
         Omega_star <- get_Omega_i(Theta_all[[c]], xi_star)
         # Get mean and covariance for person i assuming their COD is c
