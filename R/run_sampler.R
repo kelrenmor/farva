@@ -693,10 +693,12 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   tau_delta_post <- tau_delta_post/postSavesnum
   tau_theta_post <- tau_theta_post/postSavesnum
   
-  colnames(indiv_prob) <- un_cods
   if( is.null(S_test) ){ 
     csmf_test_save = cod_test_save = indiv_prob = NULL 
-  } else{ rownames(csmf_test_save) = un_cods }
+  } else{ 
+    rownames(csmf_test_save) = un_cods 
+    colnames(indiv_prob) <- un_cods
+  }
   if( !inference ){ mean_all_inf = cov_all_inf = tau_delta_inf = tau_theta_post = Sigma_0_vec_inf = NULL }
   
   farva_res = list("csmf_test_save"=csmf_test_save, "cod_test_save"=cod_test_save,
