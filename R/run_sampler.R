@@ -727,5 +727,5 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     inf_list = list()
   }
   
-  return( c(farva_res, return_data, inference) )
+  return( c(farva_res, dat_list, inf_list) )
 }
