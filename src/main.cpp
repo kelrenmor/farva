@@ -385,7 +385,7 @@ arma::mat sample_betaxi_c(arma::mat z_c, arma::vec Sig0vec,
   double tilde_z;
   double tilde_prec;
   arma::mat Sigma_tilde_inv = arma::inv(Sigma_beta);
-  arma::vec mu_tilde = mu_beta;
+  arma::vec mu_tilde = arma::solve(Sigma_beta,mu_beta);
   for(int j=0; j<P; j++){
     for(int i=0; i<N; i++){
       double mn_tmp = 0.0;

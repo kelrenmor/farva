@@ -6,7 +6,7 @@ Date: 2019-06-17
 Author: Kelly R. Moran
 Maintainer: Kelly R. Moran <kelly.r.moran@duke.edu>
 Description: The FActor Regression for Verbal Autopsy (FARVA) method is a novel class of hierarchical factor regression models that avoid restrictive assumptions of standard methods. This approach allows both the mean and covariance to vary with cause of death category and can include covariate information on the decedent (such as age/gender), region (e.g. malaria endemicity or spatial location), or event (e.g., season, year). Taking a Bayesian approach to inference, this work relies on a Gibbs sampling algorithm.
-License: What license is it under?
+License: GPL
 Imports: 
   Rcpp (>= 1.0.1),
   MCMCpack (>= 1.4-3),
