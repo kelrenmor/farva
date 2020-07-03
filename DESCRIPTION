@@ -18,3 +18,4 @@ LinkingTo:
   Rcpp, 
   RcppArmadillo, 
   RcppDist
+LazyData: true

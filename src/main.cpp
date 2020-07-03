@@ -502,9 +502,8 @@ arma::mat sample_psi_istar(arma::vec sig_sq_psi, arma::mat alpha_c, arma::vec X_
   * X_i, the B x 1 covariate vector (X_{i*,:})^T for death i* ; 
   * beta_c is the B x L x K cube of cause-specific vectors of coefficients for the regression of \xi_{c,lk} ;
   */
-  int B = alpha_c.n_rows;
   int K = alpha_c.n_cols;
-  arma::vec psi_istar(K);
+  arma::mat psi_istar(K,1);
   arma::vec alpha_ck;
   for( int kk=0; kk<K; kk++ ){
     alpha_ck = alpha_c.col(kk);
