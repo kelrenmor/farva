@@ -111,6 +111,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_Theta_j_noobs
+arma::mat sample_Theta_j_noobs(arma::vec Delta_j, arma::vec phi_j, arma::vec tau);
+RcppExport SEXP _farva_sample_Theta_j_noobs(SEXP Delta_jSEXP, SEXP phi_jSEXP, SEXP tauSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type Delta_j(Delta_jSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type phi_j(phi_jSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_Theta_j_noobs(Delta_j, phi_j, tau));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_Delta_jl
 double sample_Delta_jl(double phi_jl_delta, double tau_l_delta, arma::vec Theta_jl, double phi_jl_theta, double tau_l_theta);
 RcppExport SEXP _farva_sample_Delta_jl(SEXP phi_jl_deltaSEXP, SEXP tau_l_deltaSEXP, SEXP Theta_jlSEXP, SEXP phi_jl_thetaSEXP, SEXP tau_l_thetaSEXP) {
@@ -203,9 +216,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_beta_c_noobs
+arma::mat sample_beta_c_noobs(arma::vec mu_beta, arma::mat Sigma_beta);
+RcppExport SEXP _farva_sample_beta_c_noobs(SEXP mu_betaSEXP, SEXP Sigma_betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type mu_beta(mu_betaSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Sigma_beta(Sigma_betaSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_beta_c_noobs(mu_beta, Sigma_beta));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_betaxi_c
-arma::mat sample_betaxi_c(arma::mat z_c, arma::vec Sig0vec, arma::mat eta_c, arma::mat Theta_c, arma::cube beta_c, arma::vec mu_beta, arma::mat Sigma_beta, arma::cube XXt_c, arma::mat X_c, int k_get, int l_get);
-RcppExport SEXP _farva_sample_betaxi_c(SEXP z_cSEXP, SEXP Sig0vecSEXP, SEXP eta_cSEXP, SEXP Theta_cSEXP, SEXP beta_cSEXP, SEXP mu_betaSEXP, SEXP Sigma_betaSEXP, SEXP XXt_cSEXP, SEXP X_cSEXP, SEXP k_getSEXP, SEXP l_getSEXP) {
+arma::mat sample_betaxi_c(arma::mat z_c, arma::vec Sig0vec, arma::mat eta_c, arma::mat Theta_c, arma::cube beta_c, arma::vec mu_beta, arma::mat Sigma_beta, arma::cube XXt_c, arma::mat X_c, int k_get, int l_get, arma::Mat<int> is_obs);
+RcppExport SEXP _farva_sample_betaxi_c(SEXP z_cSEXP, SEXP Sig0vecSEXP, SEXP eta_cSEXP, SEXP Theta_cSEXP, SEXP beta_cSEXP, SEXP mu_betaSEXP, SEXP Sigma_betaSEXP, SEXP XXt_cSEXP, SEXP X_cSEXP, SEXP k_getSEXP, SEXP l_getSEXP, SEXP is_obsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -220,7 +245,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type X_c(X_cSEXP);
     Rcpp::traits::input_parameter< int >::type k_get(k_getSEXP);
     Rcpp::traits::input_parameter< int >::type l_get(l_getSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_betaxi_c(z_c, Sig0vec, eta_c, Theta_c, beta_c, mu_beta, Sigma_beta, XXt_c, X_c, k_get, l_get));
+    Rcpp::traits::input_parameter< arma::Mat<int> >::type is_obs(is_obsSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_betaxi_c(z_c, Sig0vec, eta_c, Theta_c, beta_c, mu_beta, Sigma_beta, XXt_c, X_c, k_get, l_get, is_obs));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -351,13 +377,15 @@ static const R_CallMethodDef CallEntries[] = {
     {"_farva_sample_xi_all", (DL_FUNC) &_farva_sample_xi_all, 11},
     {"_farva_sample_psi_i", (DL_FUNC) &_farva_sample_psi_i, 6},
     {"_farva_sample_Theta_j", (DL_FUNC) &_farva_sample_Theta_j, 7},
+    {"_farva_sample_Theta_j_noobs", (DL_FUNC) &_farva_sample_Theta_j_noobs, 3},
     {"_farva_sample_Delta_jl", (DL_FUNC) &_farva_sample_Delta_jl, 5},
     {"_farva_sample_nu", (DL_FUNC) &_farva_sample_nu, 5},
     {"_farva_sample_phi_pl", (DL_FUNC) &_farva_sample_phi_pl, 3},
     {"_farva_sample_delta_theta", (DL_FUNC) &_farva_sample_delta_theta, 7},
     {"_farva_sample_delta_Delta", (DL_FUNC) &_farva_sample_delta_Delta, 6},
     {"_farva_sample_beta_c", (DL_FUNC) &_farva_sample_beta_c, 6},
-    {"_farva_sample_betaxi_c", (DL_FUNC) &_farva_sample_betaxi_c, 11},
+    {"_farva_sample_beta_c_noobs", (DL_FUNC) &_farva_sample_beta_c_noobs, 2},
+    {"_farva_sample_betaxi_c", (DL_FUNC) &_farva_sample_betaxi_c, 12},
     {"_farva_sample_beta_mu", (DL_FUNC) &_farva_sample_beta_mu, 5},
     {"_farva_sample_beta_Sigma", (DL_FUNC) &_farva_sample_beta_Sigma, 5},
     {"_farva_sample_sigsq", (DL_FUNC) &_farva_sample_sigsq, 4},

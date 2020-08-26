@@ -29,6 +29,10 @@ sample_Theta_j <- function(sig_sq_j, xi_c, eta_c, z_cj, Delta_j, phi_j, tau) {
     .Call(`_farva_sample_Theta_j`, sig_sq_j, xi_c, eta_c, z_cj, Delta_j, phi_j, tau)
 }
 
+sample_Theta_j_noobs <- function(Delta_j, phi_j, tau) {
+    .Call(`_farva_sample_Theta_j_noobs`, Delta_j, phi_j, tau)
+}
+
 sample_Delta_jl <- function(phi_jl_delta, tau_l_delta, Theta_jl, phi_jl_theta, tau_l_theta) {
     .Call(`_farva_sample_Delta_jl`, phi_jl_delta, tau_l_delta, Theta_jl, phi_jl_theta, tau_l_theta)
 }
@@ -53,8 +57,12 @@ sample_beta_c <- function(y, mu_beta, Sigma_beta, sig_sq, XtX, Xt) {
     .Call(`_farva_sample_beta_c`, y, mu_beta, Sigma_beta, sig_sq, XtX, Xt)
 }
 
-sample_betaxi_c <- function(z_c, Sig0vec, eta_c, Theta_c, beta_c, mu_beta, Sigma_beta, XXt_c, X_c, k_get, l_get) {
-    .Call(`_farva_sample_betaxi_c`, z_c, Sig0vec, eta_c, Theta_c, beta_c, mu_beta, Sigma_beta, XXt_c, X_c, k_get, l_get)
+sample_beta_c_noobs <- function(mu_beta, Sigma_beta) {
+    .Call(`_farva_sample_beta_c_noobs`, mu_beta, Sigma_beta)
+}
+
+sample_betaxi_c <- function(z_c, Sig0vec, eta_c, Theta_c, beta_c, mu_beta, Sigma_beta, XXt_c, X_c, k_get, l_get, is_obs) {
+    .Call(`_farva_sample_betaxi_c`, z_c, Sig0vec, eta_c, Theta_c, beta_c, mu_beta, Sigma_beta, XXt_c, X_c, k_get, l_get, is_obs)
 }
 
 sample_beta_mu <- function(mu_0, Lambda_0, C, beta_mean, Sigma_beta) {
