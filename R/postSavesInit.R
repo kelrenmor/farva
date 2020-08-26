@@ -1,14 +1,15 @@
 postSavesInit <- function(num_causes,P,K,L,save_inds_sig,save_inds_mu){
   
   # Set up 0 matrices/arrays/vectors to hold saved parameter values
-  Omega_all_post <- eta_all_post <- mean_all_post <- cov_all_post <- Theta_all_post <- list()
+  Omega_all_post <- eta_all_post <- mu_post <- mean_indiv_post <- cov_indiv_post <- Theta_all_post <- list()
   for(c in 1:num_causes){
     l_sis <- length(save_inds_sig[[c]])
     l_sim <- length(save_inds_mu[[c]])
     Omega_all_post[[c]] <- array(0, c(P,K,l_sis))
     eta_all_post[[c]] <- matrix(0, nrow=K, ncol=l_sim)
-    mean_all_post[[c]] <- matrix(0, nrow=P, ncol=l_sim)
-    cov_all_post[[c]] <- array(0, c(P,P,l_sis))
+    mu_post[[c]] <- matrix(0, nrow=P, ncol=l_sim)
+    mean_indiv_post[[c]] <- matrix(0, nrow=P, ncol=l_sim)
+    cov_indiv_post[[c]] <- array(0, c(P,P,l_sis))
     Theta_all_post[[c]] <- matrix(0, nrow=P, ncol=L)
   }
   Delta_post <- matrix(0, nrow=P, ncol=L)
@@ -17,10 +18,10 @@ postSavesInit <- function(num_causes,P,K,L,save_inds_sig,save_inds_mu){
   sigsq_RSS_post <- Sigma_0_vec_post <- matrix(0,nrow=P,ncol=1)
   
   post_saves_list <- list('Omega_all_post'=Omega_all_post, 'eta_all_post'=eta_all_post, 
-                          'mean_all_post'=mean_all_post, 'cov_all_post'=cov_all_post, 
+                          'mu_post'=mu_post, 'mean_indiv_post'=mean_indiv_post, 'cov_indiv_post'=cov_indiv_post, 
                           'Theta_all_post'=Theta_all_post, 'Delta_post'=Delta_post, 
                           'tau_delta_post'=tau_delta_post, 'tau_theta_post'=tau_theta_post, 
                           'sigsq_RSS_post'=sigsq_RSS_post, 'Sigma_0_vec_post'=Sigma_0_vec_post)
-
+  
   return(post_saves_list)
 }

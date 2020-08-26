@@ -1,8 +1,8 @@
 farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL, 
                       S_test=NULL, X_test_mu=NULL, X_test_sig=NULL, impossible_cause=NULL,
-                      save_num_tot=500, burnin=1000, thin=10, L=5, K=5, inference=F,
-                      mu_collapse=F, mc_tot=200, fast_test_samp=T, prec_equal_deltaTheta=T,
-                      print_prog=T, save_inds_mu="unique", save_inds_sig="unique", return_data=T){
+                      save_num_tot=500, burnin=1000, thin=10, K=5, L=K, 
+                      mu_collapse=F, inference=F,
+                      verbose=T, save_inds_mu="unique", save_inds_sig="unique", return_data=T){
   # - S_mat (required) should be a num_causes list of matrices with TRAINING data with indexing
   #   from 1 to the number of training causes, i.e. { S_mat[[1]], ..., S_mat[[C]] }. 
   #   Alternatively, S_mat can me a matrix with the first column being a unique COD identifier
@@ -22,9 +22,6 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   #   thus nsamps is the ( total number of samples taken = burnin + thin * save_num_tot ).
   # - L and K are the dimension reduction parameters (see paper).
   # - mu_collapse controls whether to use \z_i = \mu + \lam\eta (F) or \z_i = \lam\eta (T, default).
-  # - mc_tot is the number of Monte carlo samples to be used for probability calc of test data (default 200).
-  # - fast_test_samp (default T) says whether to use MC samples (faster) for test data even when data are not mixed.
-  # - prec_equal_deltaTheta (default T) says whether to assume phi_delta = phi_theta and delta_delta = delta_theta
   # - burnin is number of samples to be discarded as burnin (default 1/5 of nsamps).
   # - thin is the total number of samples per one saved sample (default 10).
   # - save_inds_mu and save_inds_sig specify which of cov_all, mean_all, omega_all, eta_all should be 
@@ -36,7 +33,14 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   library(RcppDist)
   library(mvtnorm)
   
-  ############ ONE-TIME CALCULATIONS/TRANSFORMS ############
+  ############ ONE-TIME CALCULATIONS/TRANSFORMS AND FIXED ############
+  
+  # Number of Monte carlo samples to be used for probability calc of test data
+  mc_tot = 200
+  # Assume phi_delta = phi_theta and delta_delta = delta_theta
+  prec_equal_deltaTheta = TRUE
+  # Use MC samples (faster) for test data even when data are not mixed
+  fast_test_samp = TRUE
   
   if( is.null(X_all_sig) ){ 
     L = K 
@@ -100,8 +104,33 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   tmp_mat[is.na(tmp_mat)] <- 0; # for cleanliness, make NAs 0
   for(p in 1:P){ if( length(unique(tmp_mat[,p]))>2 ){ is_binary[p] <- F } }
   if( !is.matrix(S_mat[[1]]) ){ S_mat = lapply(S_mat, as.matrix) }
-  if( !is.null(S_test) ){ if( !is.matrix(S_test) ){ S_mat = as.matrix(S_test) } }
+  if( !is.null(S_test) ){ if( !is.matrix(S_test) ){ S_test = as.matrix(S_test) } }
   # Note for non-binary data, the init code sets z_{ij} = s_{ij}
+  all_binary <- (sum(is_binary)==P)
+  
+  # Get list of whether or not each entry is NA for S_mat
+  S_mat_notna <- list()
+  no_obs_cp <- matrix(FALSE, num_causes, P)
+  for(c in 1:num_causes){
+    S_mat_notna[[c]] <- !is.na(S_mat[[c]])
+    for(p in 1:P){
+      obs_inds <- S_mat_notna[[c]][,p]
+      no_obs_cp[c,p] <- sum(obs_inds)==0
+    }
+  }
+  N_obs_bysymp <- apply( do.call(rbind,lapply( S_mat_notna, function(x) apply(x, 2, sum) )), 2, sum )
+  
+  if(verbose){
+    if(mu_collapse){
+      print("mu_collapse=F (default) implies latent symptom model is z_i = mu_c[i] + Lambda_c[i] eta_i + epsilon_i, with eta_i~N(0,1).")
+      print("To use latent symptom model z_i = mu_c[i] + Lambda_c[i] eta_i + epsilon_i, with eta_i~N(0,1), set mu_collapse=T")
+      print("")
+    } else{
+      print("mu_collapse=T implies latent symptom model is z_i = Lambda_c[i] eta_c[i] + epsilon_i, with eta_i~N(\nu_i,1).")
+      print("To use latent symptom model z_i = mu_c[i] + Lambda_c[i] eta_i + epsilon_i, with eta_i~N(0,1), set mu_collapse=F")
+      print("")
+    }
+  }
   
   ############ DEFINE HYPER-HYPER PARAMETERS ############
   
@@ -146,6 +175,18 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     for(i in 1:N[[c]]){ XXt_all_sig[[c]][,,i] = Xt_all_sig[[c]][,i,drop=FALSE] %*% X_all_sig[[c]][i,,drop=FALSE] }
   }
   
+  XtX_all_mu_p = list()
+  for(c in 1:num_causes){
+    obs_tmpc = S_mat_notna[[c]]
+    XtX_all_mu_p[[c]] = list()
+    for(p in 1:P){
+      if( !no_obs_cp[c,p] ){
+        obs_inds <- obs_tmpc[,p]
+        XtX_all_mu_p[[c]][[p]] <- as.matrix(Xt_all_mu[[c]][,obs_inds,drop=F] %*% X_all_mu[[c]][obs_inds,,drop=F])
+      }
+    }
+  }
+  
   # Make list of save_inds_mu (if not provided) specifying individual-specific indices to save
   if( (save_inds_mu=="all")[1] ){
     save_inds_mu=list(); for(c in 1:num_causes){ save_inds_mu[[c]]=1:N[[c]] }
@@ -155,10 +196,10 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     save_inds_mu=list(); for(c in 1:num_causes){ save_inds_mu[[c]]=1 }
   } else if( is.list(save_inds_mu) ){
     if( !(length(save_inds_mu)==num_causes) ){
-      print("Need save_inds_mu to be 'all', 'unique', 'first', or num_causes list of indices.")
+      print("Need save_inds_mu to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
     }
   } else{
-    print("Need save_inds_mu to be 'all', 'unique', 'first', or num_causes list of indices.")
+    print("Need save_inds_mu to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
   }
   # Make list of save_inds_sig (if not provided) specifying individual-specific indices to save
   if( (save_inds_sig=="all")[1] ){
@@ -169,10 +210,10 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     save_inds_sig=list(); for(c in 1:num_causes){ save_inds_sig[[c]]=1 }
   } else if( is.list(save_inds_sig) ){
     if( !(length(save_inds_sig)==num_causes) ){
-      print("Need save_inds_sig to be 'all', 'unique', 'first', or num_causes list of indices.")
+      print("Need save_inds_sig to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
     }
   } else{
-    print("Need save_inds_sig to be 'all', 'unique', 'first', or num_causes list of indices.")
+    print("Need save_inds_sig to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
   }
   
   # Initialize parameters using set hyperparameter values
@@ -188,8 +229,11 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   # Determine how many samples are to be saved through sampler
   # nsamps is the total number of samples (including burnin, thinned, etc) from which saved samples are pulled.
   nsamps <- burnin+save_num_tot*thin
-  print(paste("Total number of samples will be:", nsamps))
-  print(paste("Total saved samples will be:", save_num_tot))
+  if(verbose){
+    print(paste("Total number of samples will be:", nsamps))
+    print(paste("Total saved draws will be:", save_num_tot))
+    print("")
+  }
   
   # Set up values to be used in the sampler loop for saving things
   save_num <- 1 # initialize save number
@@ -207,17 +251,22 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   post_saves_list <- postSavesInit(num_causes,P,K,L,save_inds_sig,save_inds_mu)
   list2env(post_saves_list, environment()) # puts list elements in environment
   if(inference){ 
-    post_saves_inf_list <- postSavesInitInference(num_causes,P,L,save_num_tot,
+    post_saves_inf_list <- postSavesInitInference(num_causes,P,K,L,save_num_tot,
                                                   save_inds_sig,save_inds_mu)
     list2env(post_saves_inf_list, environment()) # puts list elements in environment
   }
   
   ############ RUN SAMPLER ############
   ten_perc <- round(seq(1,nsamps,length=10))
+  prcnt <- 0
+  ptm <- proc.time()
   for(ss in 1:nsamps){
     
-    if( ss%in%ten_perc & print_prog ){ print(paste("sample",ss,"of",nsamps)) }
-    print(paste("sample",ss,"of",nsamps))
+    if( ss%in%ten_perc & verbose & (!(ss==1)) ){ 
+      #print(paste("Sample",ss,"of",nsamps)) 
+      prcnt = prcnt + 10
+      print(paste0(prcnt,"% done with sampling"))
+    }
     
     ############ UPDATE \mu_{c,j} ############
     ############ and hierarchical regression params for each
@@ -232,26 +281,36 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
       
     } else{ # If we have z_i = \mu_{c[i]} + \Lambda\eta_i, \eta_i~N(0, I), sample mu_all[[c]].
       
-      # Sample \mu vector for each cause c
+      # Sample regression parameters gamma_c_all for each cause c
+      for(c in 1:num_causes){
+        obs_tmpc = S_mat_notna[[c]]
+        # Get temporary matrix to hold observed deviations of z_i from \lambda \eta_i
+        dev_tmp = matrix(NA,nrow=N[[c]],ncol=P)
+        for(i in 1:N[[c]]){
+          obs_symps <- obs_tmpc[i,]
+          dev_tmp[i,obs_symps] <- c( z_all_nominus[[c]][obs_symps,i,drop=F] - 
+                                       matrix( Omega_all[[c]][obs_symps,,i], ncol=K ) %*% 
+                                       matrix( psi_all[[c]][,i,drop=F]) )
+        }
+        for(p in 1:P){
+          if( no_obs_cp[c,p] ){
+            gamma_c_all[[c]][,p] <- sample_beta_c_noobs(matrix(gamma_all[,p]), as.matrix(gamma_Sigma[,,p]))
+          } else{
+            obs_inds <- obs_tmpc[,p]
+            gamma_c_all[[c]][,p] <- sample_beta_c(matrix(dev_tmp[obs_inds,p]), matrix(gamma_all[,p]), as.matrix(gamma_Sigma[,,p]), 
+                                                  Sigma_0_vec[p], XtX_all_mu_p[[c]][[p]], Xt_all_mu[[c]][,obs_inds,drop=F])
+          }
+        }
+      }
+      
+      # Set \mu vector for each cause c
       for(c in 1:num_causes){
         for(p in 1:P){
           for(i in 1:N[[c]]){
             mu_all[[c]][p,i] <- matrix(X_all_mu[[c]][i,], nrow=1) %*% matrix(gamma_c_all[[c]][,p])
           }
         }
-      }
-      
-      # Sample regression parameters gamma_c_all for each cause c
-      for(c in 1:num_causes){
-        # Get temporary matrix to hold observed deviations of z_i from \lambda \eta_i
-        dev_tmp = matrix(NA,nrow=N[[c]],ncol=P)
-        for(i in 1:N[[c]]){
-          dev_tmp[i,] <- c(z_all_nominus[[c]][,i] - Omega_all[[c]][,,i] %*% matrix(psi_all[[c]][,i]))
-        }
-        for(p in 1:P){
-          gamma_c_all[[c]][,p] <- sample_beta_c(matrix(dev_tmp[,p]), matrix(gamma_all[,p]), as.matrix(gamma_Sigma[,,p]), 
-                                                Sigma_0_vec[p], XtX_all_mu[[c]], Xt_all_mu[[c]])
-        }
+        z_all[[c]] <- z_all_nominus[[c]] - mu_all[[c]]
       }
       
       # Sample \gamma_all_{p} (population-level mean) for each entry p\in{1,..,P};
@@ -260,6 +319,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
       for(p in 1:P){
         gamma_all[,p] <- sample_beta_mu(mu_0_gamma, Lambda_0_gamma, num_causes, 
                                         matrix(gamma_means[,p]), as.matrix(gamma_Sigma[,,p]))
+        #gamma_all[,p] <- 0
       }
       
       # Sample \gamma_Sigma{p} (population-level covariance) for each entry p\in{1,..,P};
@@ -269,6 +329,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
                                               do.call(cbind, 
                                                       rapply(gamma_c_all, classes='matrix', how='list', 
                                                              f=function(x) x[, p, drop=FALSE])) )
+        #gamma_Sigma[,,p] <- 0.1 * diag(B_mu)
       }
       
     }
@@ -296,13 +357,14 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
       # Sample \beta_{c,lk} for each cause c and entry l\in{1,..,L} and k\in{1,...,K};
       # the result is a length B_sig vector with entry b being the coefficient for covariate b for \xi_{c,lk}
       for(c in 1:num_causes){
+        obs_tmpc = S_mat_notna[[c]]
         for(l in 1:L){
           for(k in 1:K){
             beta_c_all[[c]][,l,k] <- sample_betaxi_c(z_c=z_all[[c]], Sig0vec=Sigma_0_vec, 
                                                      eta_c=eta_all[[c]], Theta_c=Theta_all[[c]], beta_c=beta_c_all[[c]],
                                                      mu_beta=matrix(beta_all[,l,k]), Sigma_beta=as.matrix(beta_Sigma[,,l,k]), 
                                                      XXt_c=XXt_all_sig[[c]],  X_c=Xt_all_sig[[c]],
-                                                     k_get=k-1, l_get=l-1)
+                                                     k_get=k-1, l_get=l-1, is_obs=1*obs_tmpc)
             xi_all[[c]][l,k,] = (X_all_sig[[c]])%*%matrix(beta_c_all[[c]][,l,k])
           }
         }
@@ -347,6 +409,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
         for(k in 1:K){
           beta_all[,l,k] <- sample_beta_mu(mu_0_beta, Lambda_0_beta, num_causes, 
                                            beta_means[,l,k,drop=F], as.matrix(beta_Sigma[,,l,k]))
+          #beta_all[,l,k] <- 0
         }
       }
       
@@ -358,6 +421,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
                                                  do.call(cbind, 
                                                          rapply(beta_c_all, classes='array', how='list', 
                                                                 f=function(x) x[, l, k, drop=FALSE])) )
+          #beta_Sigma[,,l,k] <- 0.1 * diag(B_sig)
         }
       }
       
@@ -373,15 +437,30 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     ############ UPDATE \psi_{c,k} ############
     ############ and hierarchical regression params for each
     
-    # Fix sigSqpsi_all to 1 for identifiabilitys
-    if( ss==1 ){ for(k in 1:K){ sigSqpsi_all[k] <- 1 } }
+    # Fix alpha_c_all to 0, and alpha_Sigma to the identity, then you end up with \eta_i~N(0, I)
+    if( ss==1 ){
+      if( mu_collapse ){ # If we have z_i = \Lambda\eta_i, \eta_i~N(\psi x, I) 
+        for(k in 1:K){ sigSqpsi_all[k] <- 1 } # Fix sigSqpsi_all to 1 for identifiability
+      } else{ # If we have z_i = \mu + \Lambda\eta_i, \eta_i~N(0, I) 
+        for(c in 1:num_causes){
+          for(k in 1:K){
+            alpha_c_all[[c]][,k] <- matrix(0,nrow=nrow(XtX_all_mu[[c]]),ncol=1) # allows for mean-0 spec of eta
+          }
+        }
+        for(k in 1:K){ sigSqpsi_all[k] <- 1 } # Fix sigSqpsi_all for identifiability
+      }
+    }
     
     # Sample \psi_{c,i,k} for entries k\in{1,...,K} for each death i with cause c ;
     # each iter samples a single numer, the draw for component k of death i of cause c
     for(c in 1:num_causes){
+      obs_tmpc = S_mat_notna[[c]]
       for(i in 1:N[[c]]){
+        obs_symps <- obs_tmpc[i,]
         psi_all[[c]][,i] <- sample_psi_i(sigSqpsi_all, alpha_c_all[[c]], matrix(X_all_mu[[c]][i,]),
-                                         Sigma_0_vec, Omega_all[[c]][,,i], matrix(z_all[[c]][,i]))
+                                         Sigma_0_vec[obs_symps,drop=F], 
+                                         matrix(Omega_all[[c]][obs_symps,,i],ncol=K), 
+                                         matrix(z_all[[c]][obs_symps,i]))
       }
     }
     
@@ -415,18 +494,6 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
                                                              f=function(x) x[, k, drop=FALSE])) )
       }
       
-    } else{ # If we have z_i = \mu + \Lambda\eta_i, \eta_i~N(0, I) 
-      
-      # Fix alpha_c_all to 0, and alpha_Sigma to the identity, then you end up with \eta_i~N(0, I)
-      if(ss==1){ 
-        for(c in 1:num_causes){
-          for(k in 1:K){
-            alpha_c_all[[c]][,k] <- matrix(0,nrow=nrow(XtX_all_mu[[c]]),ncol=1) # allows for mean-0 spec of eta
-          }
-        }
-        for(k in 1:K){ alpha_Sigma[,,k] <- diag(1,B_sig) } 
-      }
-      
     }
     
     ############ UPDATE \eta_{i} ############
@@ -449,17 +516,21 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     
     # Get RSS for each 
     sigsq_RSS <- matrix(0,nrow=P)
-    for(c in 1:num_causes){
-      for(i in 1:N[[c]]){
-        tmp_rs <- (Theta_all[[c]]) %*% (xi_all[[c]][,,i]) %*% matrix(eta_all[[c]][,i]) - 
-          matrix(z_all[[c]][,i])
-        sigsq_RSS = sigsq_RSS + tmp_rs^2 
+    if( !all_binary ){
+      for(c in 1:num_causes){
+        obs_tmpc = S_mat_notna[[c]]
+        for(i in 1:N[[c]]){
+          obs_symps <- obs_tmpc[i,] & is_binary
+          tmp_rs <- (Theta_all[[c]][obs_symps,,drop=F]) %*% (xi_all[[c]][,,i]) %*% matrix(eta_all[[c]][,i]) - 
+            matrix(z_all[[c]][obs_symps,i,drop=F])
+          sigsq_RSS[obs_symps] = sigsq_RSS[obs_symps] + tmp_rs^2 
+        }
       }
     }
     
     for(p in 1:P){
       if( !is_binary[p] ){
-        Sigma_0[p,p] <- sample_sigsq(a_sigsq, b_sigsq, N_sum, sigsq_RSS[p])
+        Sigma_0[p,p] <- sample_sigsq(a_sigsq, b_sigsq, N_obs_bysymp[p], sigsq_RSS[p])
       }
     }
     # Make Sigma_0_vec from updated Sigma_0
@@ -470,10 +541,17 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     
     # Sample each row of PxL matrix \Theta_c for each c
     for(c in 1:num_causes){
+      obs_tmpc = S_mat_notna[[c]]
       for(p in 1:P){
-        Theta_all[[c]][p,] <- sample_Theta_j(Sigma_0_vec[p], xi_all[[c]], eta_all[[c]], 
-                                             matrix(z_all[[c]][p,]), matrix(Delta[p,]),
-                                             matrix(phi_theta[p,]), tau_theta)
+        if( no_obs_cp[c,p] ){
+          Theta_all[[c]][p,] <- sample_Theta_j_noobs(matrix(Delta[p,]), matrix(phi_theta[p,]), tau_theta)
+        } else{
+          obs_inds <- obs_tmpc[,p]
+          Theta_all[[c]][p,] <- sample_Theta_j(Sigma_0_vec[p], xi_all[[c]][,,obs_inds,drop=F], 
+                                               eta_all[[c]][,obs_inds,drop=F], 
+                                               matrix(z_all[[c]][p,obs_inds,drop=F]), matrix(Delta[p,]),
+                                               matrix(phi_theta[p,]), tau_theta)
+        }
       }
     }
     
@@ -488,7 +566,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
           phi_theta[p,l] <- sample_phi_pl(nu_theta, tau_theta[l] * sum_tmp, num_causes)
         }
       }
-  
+      
       # Sample each element of L-vec \delta_{\theta} and calculate tau_theta (cum prod) on the way
       Theta_cube <- array(unlist(Theta_all),
                           dim = c(nrow(Theta_all[[1]]), ncol(Theta_all[[1]]), length(Theta_all)))
@@ -527,7 +605,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
           for(c in 1:num_causes){
             sum_tmp <- sum_tmp + tau_theta[l]*(Theta_all[[c]][p,l]-Delta[p,l])^2
           }
-          sample_phi_pl(nu_theta, tau_theta[l] * sum_tmp, num_causes+1)
+          phi_theta[p,l] <- sample_phi_pl(nu_theta, sum_tmp, num_causes+1)
         }
         phi_delta[p,] <- phi_theta[p,]
       }  
@@ -558,7 +636,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
           phi_delta[p,l] <- sample_phi_pl(nu_delta, tau_delta[l] * (Delta[p,l]^2), 1)
         }
       }
-
+      
       # Sample each element of L vector \delta_{\Delta} and calculate tau_delta (cum prod) on the way
       for(l in 1:L){
         delta_delta[l] <- sample_delta_Delta(a1_del_del, a2_del_del, Delta, phi_delta, delta_delta, l-1)
@@ -626,8 +704,9 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
       eta_all_post <- Map("+", eta_all_post, lapply(1:num_causes, function(x) eta_all[[x]][, save_inds_mu[[x]], drop=FALSE]))
       sigsq_RSS_post <- sigsq_RSS_post + sigsq_RSS
       Sigma_0_vec_post <- Sigma_0_vec_post + Sigma_0_vec
-      mean_all_post <- Map("+", mean_all_post, lapply(1:num_causes, function(x) mean_all[[x]][, save_inds_mu[[x]], drop=FALSE]))
-      cov_all_post <- Map("+", cov_all_post, lapply(1:num_causes, function(x) cov_all[[x]][, , save_inds_sig[[x]], drop=FALSE]))
+      mu_post <- Map("+", mu_post, lapply(1:num_causes, function(x) mu_all[[x]][, save_inds_mu[[x]], drop=FALSE]))
+      mean_indiv_post <- Map("+", mean_indiv_post, lapply(1:num_causes, function(x) mean_all[[x]][, save_inds_mu[[x]], drop=FALSE]))
+      cov_indiv_post <- Map("+", cov_indiv_post, lapply(1:num_causes, function(x) cov_all[[x]][, , save_inds_sig[[x]], drop=FALSE]))
       Theta_all_post <- Map("+", Theta_all_post, Theta_all)
       Delta_post <- Delta_post + Delta
       tau_delta_post <- tau_delta_post + tau_delta
@@ -635,8 +714,10 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
       if(inference){ 
         # Save current parameter values for inference-parameters
         for(c in 1:num_causes){
-          mean_all_inf[[c]][,,save_num] <- mean_all[[c]][, save_inds_mu[[c]]] # , drop=FALSE
-          cov_all_inf[[c]][,,,save_num] <- cov_all[[c]][, , save_inds_sig[[c]]] # , drop=FALSE
+          z_indiv_inf[[c]][,,save_num] <- z_all_nominus[[c]][, save_inds_mu[[c]]] # , drop=FALSE
+          mean_indiv_inf[[c]][,,save_num] <- mean_all[[c]][, save_inds_mu[[c]]] # , drop=FALSE
+          mu_inf[[c]][,,save_num] <- mu_all[[c]][, save_inds_mu[[c]]] # , drop=FALSE
+          cov_indiv_inf[[c]][,,,save_num] <- cov_all[[c]][, , save_inds_sig[[c]]] # , drop=FALSE
         }
         tau_delta_inf[,save_num] <- tau_delta
         tau_theta_inf[,save_num] <- tau_theta
@@ -676,17 +757,28 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
         csmf_test_save[,save_num] <- csmf_tmp
       }
       
+      if(ss==1){ 
+        ptm2 <- proc.time() - ptm 
+        print(paste('Collecting',nsamps,'samples is expected to take around',round( ptm2[3] / (60*60), 4),'hours'))
+        if( verbose ){
+          #print(paste("sample",ss,"of",nsamps))
+          print(paste0(prcnt,"% done with sampling"))
+        }
+      }
+      
       save_num = save_num+1
     }
     
   } # for(ss in 1:nsamps)
+  if( verbose ){ print(paste0(100,"% done with sampling")) }
   # Get posterior mean from ongoing sum of select parameters
   Omega_all_post <- lapply(Omega_all_post, function(x) x/postSavesnum)
   eta_all_post <- lapply(eta_all_post, function(x) x/postSavesnum)
   sigsq_RSS_post <- sigsq_RSS_post/postSavesnum
   Sigma_0_vec_post <- Sigma_0_vec_post/postSavesnum
-  mean_all_post <- lapply(mean_all_post, function(x) x/postSavesnum)
-  cov_all_post <- lapply(cov_all_post, function(x) x/postSavesnum)
+  mu_post <- lapply(mu_post, function(x) x/postSavesnum)
+  mean_indiv_post <- lapply(mean_indiv_post, function(x) x/postSavesnum)
+  cov_indiv_post <- lapply(cov_indiv_post, function(x) x/postSavesnum)
   if( !is.null(S_test) ){indiv_prob <- sweep(indiv_prob,1,rowSums(indiv_prob),`/`)}
   Theta_all_post <- lapply(Theta_all_post, function(x) x/postSavesnum)
   Delta_post <- Delta_post/postSavesnum
@@ -699,18 +791,21 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     rownames(csmf_test_save) = un_cods 
     colnames(indiv_prob) <- un_cods
   }
-  if( !inference ){ mean_all_inf = cov_all_inf = tau_delta_inf = tau_theta_post = Sigma_0_vec_inf = NULL }
+  if( !inference ){ 
+    z_indiv_inf = mu_inf = mean_indiv_inf = cov_indiv_inf = NULL
+    tau_delta_inf = tau_theta_inf = Sigma_0_vec_inf = NULL 
+  }
   
   farva_res = list("csmf_test_save"=csmf_test_save, "cod_test_save"=cod_test_save,
-                   "indiv_prob"=indiv_prob, 
-                   "save_inds_mu"=save_inds_mu, "save_inds_sig"=save_inds_sig, 
-                   "mean_all_post"=mean_all_post, "cov_all_post"=cov_all_post,
+                   "indiv_prob"=indiv_prob)
+  
+  post_list = list("mu_post"=mu_post, "mean_indiv_post"=mean_indiv_post, "cov_indiv_post"=cov_indiv_post,
                    "Theta_all_post"=Theta_all_post, "tau_theta_post"=tau_theta_post,
-                   "Delta_post"=Delta_post, "tau_delta_post"=tau_delta_post,
-                   "K"=K,"L"=L,
-                   "un_cods"=un_cods,
-                   "impossible_cause"=impossible_cause, "burnin"=burnin, "thin"=thin,
-                   "mu_collapse"=mu_collapse, "mc_tot"=mc_tot, "fast_test_samp"=fast_test_samp)
+                   "Delta_post"=Delta_post, "tau_delta_post"=tau_delta_post)
+  
+  settings_list = list("save_inds_mu"=save_inds_mu, "save_inds_sig"=save_inds_sig, 
+                       "K"=K, "L"=L, "un_cods"=un_cods, "impossible_cause"=impossible_cause, 
+                       "burnin"=burnin, "thin"=thin, "mu_collapse"=mu_collapse)
   
   if( return_data ){
     dat_list = list("S_mat"=S_mat, "X_all_mu"=X_all_mu, "X_all_sig"=X_all_sig, 
@@ -720,12 +815,14 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   }
   
   if( inference ){ 
-    inf_list = list("mean_all_inf"=mean_all_inf,"cov_all_inf"=cov_all_inf,
+    inf_list = list("z_indiv_inf"=z_indiv_inf,"mu_inf"=mu_inf,
+                    "mean_indiv_inf"=mean_indiv_inf,"cov_indiv_inf"=cov_indiv_inf,
                     "tau_delta_inf"=tau_delta_inf, "tau_theta_inf"=tau_theta_inf,
                     "Sigma_0_vec_inf"=Sigma_0_vec_inf)
   } else{
     inf_list = list()
   }
   
-  return( c(farva_res, dat_list, inf_list) )
+  return( c(farva_res, post_list, settings_list, dat_list, inf_list) )
 }
+

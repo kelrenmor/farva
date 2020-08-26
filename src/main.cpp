@@ -32,18 +32,18 @@ arma::mat rmvnrnd(arma::vec mu, arma::mat Sigma, int n){
 // [[Rcpp::export]]
 double rnormArma(double mu, double sig_sq) {
   /* A single draw of a univariate normal distribution,
-  */ 
+   */ 
   return mu + pow(sig_sq, 0.5) * arma::randn( );
 }
 
 // [[Rcpp::export]]
 arma::mat get_Omega_i(arma::mat Theta_c, arma::mat xi_i) {
   /* 
-  * Return P x K \Omega_i = \Theta_{c[i]} \xi_{c[i]}(x_i) for i in 1,...,N_c.
-  * Input Theta_c is P x L coefficient matrix associated with cause c[i] ;
-  * and xi_i is L x K loadings matrix \xi_{c[i]}(x_i) associated with death i.
-  * 
-  */
+   * Return P x K \Omega_i = \Theta_{c[i]} \xi_{c[i]}(x_i) for i in 1,...,N_c.
+   * Input Theta_c is P x L coefficient matrix associated with cause c[i] ;
+   * and xi_i is L x K loadings matrix \xi_{c[i]}(x_i) associated with death i.
+   * 
+   */
   return Theta_c * xi_i;
 }
 
@@ -96,18 +96,18 @@ arma::vec sample_psi_i(arma::vec SigPsi, arma::mat alpha_c, arma::vec X_i,
                        arma::vec Sigma_0_vec, arma::mat Omega_i,
                        arma::vec z_i) {
   /* 
-  * Sample \psi_{c,:}(x_i) where the result is a vector for person i having COD c.
-  * 
-  * The inputs are comprised of "prior" and "likelihood" components;
-  * "Prior" components:
-  * SigPsi, the K x 1 vec of variance terms associated with obs of \psi_i ; 
-  * X_i, the B x 1 covariate vector (X_{i,*})^T for death i with COD c ; 
-  * alpha_c is the B x 1 cause-specific B vector of coefficients for the regression of \psi ;
-  * "Likelihood" components:
-  * Sigma_0_vec is the P-vector diag(\Sigma_0) ;
-  * Omega_i is the P x K matrix \Omega_i = \Theta_{c[i]} \xi_i specific to person i ; 
-  * z_i, the P*1 vector [z_{i1},...,z_{iP}]' of obs for person i ;
-  */
+   * Sample \psi_{c,:}(x_i) where the result is a vector for person i having COD c.
+   * 
+   * The inputs are comprised of "prior" and "likelihood" components;
+   * "Prior" components:
+   * SigPsi, the K x 1 vec of variance terms associated with obs of \psi_i ; 
+   * X_i, the B x 1 covariate vector (X_{i,*})^T for death i with COD c ; 
+   * alpha_c is the B x 1 cause-specific B vector of coefficients for the regression of \psi ;
+   * "Likelihood" components:
+   * Sigma_0_vec is the P-vector diag(\Sigma_0) ;
+   * Omega_i is the P x K matrix \Omega_i = \Theta_{c[i]} \xi_i specific to person i ; 
+   * z_i, the P*1 vector [z_{i1},...,z_{iP}]' of obs for person i ;
+   */
   
   int P = Omega_i.n_rows;
   int K = Omega_i.n_cols;
@@ -138,19 +138,19 @@ arma::vec sample_psi_i(arma::vec SigPsi, arma::mat alpha_c, arma::vec X_i,
 
 // [[Rcpp::export]]
 arma::mat sample_Theta_j(double sig_sq_j, arma::cube xi_c, arma::mat eta_c, arma::vec z_cj, 
-                        arma::vec Delta_j, arma::vec phi_j, arma::vec tau) {
+                         arma::vec Delta_j, arma::vec phi_j, arma::vec tau) {
   /* 
-  * Sample \Theta_{c,j*} ; the result is a length L vector where entry l is \Theta_{c,jl}.
-  * 
-  * The inputs are sig_sq_j, \sigma_j^2, the "main" error variance ;
-  * xi_c is the L x K x N_c cube where xi_c[,,i] is the LxK matrix \xi(x_i) ;
-  * eta_c is the K x N_c matrix [\eta_{c,1},...,\eta_{c,N_c}], \eta_{c,i} length-K vec for ith obs; 
-  * z_cj is length N_c vector {z_{c, 1 j},...,z_{c, N_c j}}', j is the row index of interest ;
-  * Delta_j is the length-L vector {\Delta_{j1},...,\Delta_{jL}}' ; 
-  * phi_j is the length-L vector {\phi{j1},...,\phi{jL}}' ; 
-  * tau is the length-L vector {\tau_1,...,\tau_L}' ; 
-  * 
-  */
+   * Sample \Theta_{c,j*} ; the result is a length L vector where entry l is \Theta_{c,jl}.
+   * 
+   * The inputs are sig_sq_j, \sigma_j^2, the "main" error variance ;
+   * xi_c is the L x K x N_c cube where xi_c[,,i] is the LxK matrix \xi(x_i) ;
+   * eta_c is the K x N_c matrix [\eta_{c,1},...,\eta_{c,N_c}], \eta_{c,i} length-K vec for ith obs; 
+   * z_cj is length N_c vector {z_{c, 1 j},...,z_{c, N_c j}}', j is the row index of interest ;
+   * Delta_j is the length-L vector {\Delta_{j1},...,\Delta_{jL}}' ; 
+   * phi_j is the length-L vector {\phi{j1},...,\phi{jL}}' ; 
+   * tau is the length-L vector {\tau_1,...,\tau_L}' ; 
+   * 
+   */
   int L = xi_c.n_rows;
   int N_c = xi_c.n_slices;
   // Set up necessary matrices
@@ -169,18 +169,28 @@ arma::mat sample_Theta_j(double sig_sq_j, arma::cube xi_c, arma::mat eta_c, arma
 }
 
 // [[Rcpp::export]]
+arma::mat sample_Theta_j_noobs(arma::vec Delta_j, arma::vec phi_j, arma::vec tau) {
+  /* 
+   * Sample \Theta_{c,j*} from its prior; the result is a length L vector where entry l is \Theta_{c,jl}.
+   * 
+   */
+  arma::mat Sigma_star_inv = diagmat( phi_j%tau ) ;
+  return arma::mvnrnd(Delta_j, arma::inv(Sigma_star_inv), 1);
+}
+
+// [[Rcpp::export]]
 double sample_Delta_jl(double phi_jl_delta, double tau_l_delta,
                        arma::vec Theta_jl, double phi_jl_theta, double tau_l_theta) {
   /* 
-  * Sample \Delta_{jl} ; the result is a double \Delta_{jl}.
-  * 
-  * phi_jl_delta is entry \phi_{\delta,jl} ; 
-  * tau_l_delta is the entry \tau_{\delta,l} ; 
-  * Theta_jl is C vector {\Theta_{1,jl},...,\Theta_{C,jl}}' for jl entries of Theta across causes; 
-  * phi_jl_theta is the entry \phi_{\theta,jl} ; 
-  * tau_l_theta is the entry \tau_{\theta,l} ; 
-  * 
-  */
+   * Sample \Delta_{jl} ; the result is a double \Delta_{jl}.
+   * 
+   * phi_jl_delta is entry \phi_{\delta,jl} ; 
+   * tau_l_delta is the entry \tau_{\delta,l} ; 
+   * Theta_jl is C vector {\Theta_{1,jl},...,\Theta_{C,jl}}' for jl entries of Theta across causes; 
+   * phi_jl_theta is the entry \phi_{\theta,jl} ; 
+   * tau_l_theta is the entry \tau_{\theta,l} ; 
+   * 
+   */
   int C = Theta_jl.n_rows;
   // Get overall mean and cov components
   double Sigma_star_inv =  phi_jl_delta*tau_l_delta + C*phi_jl_theta*tau_l_theta;
@@ -202,7 +212,7 @@ arma::mat sample_nu(arma::mat xi_i, arma::mat Theta_c, arma::mat Sigma_0,
    * z_i is the length-P vector of latent observations ;
    * psi_i is K vector \psi(x_i) .
    * 
-  */
+   */
   int K = psi_i.n_elem;
   // Get necessary sub-terms
   // Omega_i is P x K \Omega_i = \Theta \xi_{c[i]}(x_i) ;
@@ -244,14 +254,14 @@ double sample_phi_pl(double nu, double tau_deltaSq, int C) {
 double sample_delta_theta(double a1, double a2, arma::mat Delta, arma::cube Theta,
                           arma::mat phi_theta, arma::vec delta_theta, int h) {
   /* 
-  * Function for sampling \delta_{1}, given \delta_{1} ~ Ga(a1,1) a priori
-  * and \delta_{h} ~ Ga(a2,1) h \in {2,...,L} a priori. 
-  * Theta is P x L x C cube where slice c is P x L Theta matrix for COD c.
-  * Delta and phi_theta are P x L, delta_theta is L x 1 (this is old delta sample).
-  * h \in {0,...,L-1} specifies which element of delta is being sampled.
-  * Note that arma::randg uses scale parameterization, i.e. 1/rate.
-  * 
-  */
+   * Function for sampling \delta_{1}, given \delta_{1} ~ Ga(a1,1) a priori
+   * and \delta_{h} ~ Ga(a2,1) h \in {2,...,L} a priori. 
+   * Theta is P x L x C cube where slice c is P x L Theta matrix for COD c.
+   * Delta and phi_theta are P x L, delta_theta is L x 1 (this is old delta sample).
+   * h \in {0,...,L-1} specifies which element of delta is being sampled.
+   * Note that arma::randg uses scale parameterization, i.e. 1/rate.
+   * 
+   */
   int P = Theta.n_rows;
   int L = Theta.n_cols;
   int C = Theta.n_slices;
@@ -293,12 +303,12 @@ double sample_delta_theta(double a1, double a2, arma::mat Delta, arma::cube Thet
 double sample_delta_Delta(double a1, double a2, arma::mat Delta, arma::mat phi_delta, 
                           arma::vec delta_delta, int h) {
   /* 
-  * Function for sampling \delta_{1}, given \delta_{1} ~ Ga(a1,1) a priori
-  * and \delta_{h} ~ Ga(a2,1) h \in {2,...,L} a priori. 
-  * Delta and phi_delta are P x L, delta_delta is L x 1 (this is old delta sample).
-  * Note that arma::randg uses scale parameterization, i.e. 1/rate.
-  * 
-  */
+   * Function for sampling \delta_{1}, given \delta_{1} ~ Ga(a1,1) a priori
+   * and \delta_{h} ~ Ga(a2,1) h \in {2,...,L} a priori. 
+   * Delta and phi_delta are P x L, delta_delta is L x 1 (this is old delta sample).
+   * Note that arma::randg uses scale parameterization, i.e. 1/rate.
+   * 
+   */
   int P = Delta.n_rows;
   int L = Delta.n_cols;
   double shape;
@@ -344,19 +354,26 @@ double sample_delta_Delta(double a1, double a2, arma::mat Delta, arma::mat phi_d
 arma::mat sample_beta_c(arma::vec y, arma::vec mu_beta, arma::mat Sigma_beta, 
                         double sig_sq, arma::mat XtX, arma::mat Xt) {
   /* Here y (data) are \psi_{c,k}, with the
-  * regression hyperparameters filled in;
-  * the output will be \alpha_{c,\psi_{k}}, 
-  * the result of y = X\beta + eps regression with given prior on \beta.
-  * The input mu_beta is the B-vector "population" level mean for the beta_c's,
-  * and Sigma_beta is the B x B matrix for the "population" level covariance.
-  * 
-  * \beta_{c,\xi_{lk}} ~ N( \tilde{\Sigma} \tilde{\Mu}, \tilde{\Sigma})
-  * \tilde{\Mu} = \Sigma_{\beta_{lk}}^{-1} \mu_{\beta_{lk}} + X^T \xi_{c,lk} / \sigma_{\xi_{lk}}^2
-  * \tilde{\Sigma}^{-1} = (\Sigma_{\beta_{lk}}^{-1} + X^T X / \sigma_{\xi_{lk}}^2)
-  */
+   * regression hyperparameters filled in;
+   * the output will be \alpha_{c,\psi_{k}}, 
+   * the result of y = X\beta + eps regression with given prior on \beta.
+   * The input mu_beta is the B-vector "population" level mean for the beta_c's,
+   * and Sigma_beta is the B x B matrix for the "population" level covariance.
+   * 
+   * \beta_{c,\xi_{lk}} ~ N( \tilde{\Sigma} \tilde{\Mu}, \tilde{\Sigma})
+   * \tilde{\Mu} = \Sigma_{\beta_{lk}}^{-1} \mu_{\beta_{lk}} + X^T \xi_{c,lk} / \sigma_{\xi_{lk}}^2
+   * \tilde{\Sigma}^{-1} = (\Sigma_{\beta_{lk}}^{-1} + X^T X / \sigma_{\xi_{lk}}^2)
+   */
   arma::mat Sigma_tilde_inv = arma::inv(Sigma_beta) + XtX/sig_sq;
   arma::vec mu_tilde = arma::solve(Sigma_beta,mu_beta) + Xt * y / sig_sq;
   return arma::mvnrnd(arma::solve(Sigma_tilde_inv,mu_tilde), arma::inv(Sigma_tilde_inv), 1);
+}
+
+// [[Rcpp::export]]
+arma::mat sample_beta_c_noobs(arma::vec mu_beta, arma::mat Sigma_beta) {
+  /* When you have no obs, sample from the prior (i.e., N(mu_beta, Sigma_beta) )
+   */
+  return arma::mvnrnd(mu_beta, Sigma_beta, 1);
 }
 
 // [[Rcpp::export]]
@@ -364,17 +381,17 @@ arma::mat sample_betaxi_c(arma::mat z_c, arma::vec Sig0vec,
                           arma::mat eta_c, arma::mat Theta_c, arma::cube beta_c,
                           arma::vec mu_beta, arma::mat Sigma_beta, 
                           arma::cube XXt_c, arma::mat X_c,
-                          int k_get, int l_get) {
+                          int k_get, int l_get, arma::Mat<int> is_obs) {
   /* Here z_c is the P x N[[c]] matrix of latent continuous symptoms;
-  * Sig0vec is the P x 1 vector of variance terms associated with continuous symptoms;
-  * eta_c is the K x N[[c]] matrix of eta terms for cause c;
-  * Theta_c is the P x L matrix of Theta terms for cause c;
-  * beta_c is the B x L x K cube of beta_xi terms for cause c;
-  * XXt_c is the B_sig x B_sig x N[[c]] cube of pre-computing X X^T terms;
-  * X_c is the B_sig x N[[c]] matrix where row i is the vector x_i^T;
-  * 
-  * \beta_{c,\xi_{lk}} ~ N( \tilde{\Sigma} \tilde{\Mu}, \tilde{\Sigma})
-  */
+   * Sig0vec is the P x 1 vector of variance terms associated with continuous symptoms;
+   * eta_c is the K x N[[c]] matrix of eta terms for cause c;
+   * Theta_c is the P x L matrix of Theta terms for cause c;
+   * beta_c is the B x L x K cube of beta_xi terms for cause c;
+   * XXt_c is the B_sig x B_sig x N[[c]] cube of pre-computing X X^T terms;
+   * X_c is the B_sig x N[[c]] matrix where row i is the vector x_i^T;
+   * 
+   * \beta_{c,\xi_{lk}} ~ N( \tilde{\Sigma} \tilde{\Mu}, \tilde{\Sigma})
+   */
   
   int P = z_c.n_rows;
   int N = z_c.n_cols;
@@ -386,23 +403,27 @@ arma::mat sample_betaxi_c(arma::mat z_c, arma::vec Sig0vec,
   double tilde_prec;
   arma::mat Sigma_tilde_inv = arma::inv(Sigma_beta);
   arma::vec mu_tilde = arma::solve(Sigma_beta,mu_beta);
+  arma::Col<int> is_obs_j;
   for(int j=0; j<P; j++){
+    is_obs_j = is_obs.col(j);
     for(int i=0; i<N; i++){
-      double mn_tmp = 0.0;
-      for(int k=0; k<K; k++){
-        for(int l=0; l<L; l++){
-          if( !(k==k_get & l==l_get) ){
-            double xi_tmp = 0.0;
-            for( int b=0; b<B; b++ ){ xi_tmp += beta_c(b,l,k) * X_c(b,i) ; }
-            mn_tmp += eta_c(k,i) * Theta_c(j,l) * xi_tmp;
+      if( is_obs_j(i) == 1 ){
+        double mn_tmp = 0.0;
+        for(int k=0; k<K; k++){
+          for(int l=0; l<L; l++){
+            if( !(k==k_get & l==l_get) ){
+              double xi_tmp = 0.0;
+              for( int b=0; b<B; b++ ){ xi_tmp += beta_c(b,l,k) * X_c(b,i) ; }
+              mn_tmp += eta_c(k,i) * Theta_c(j,l) * xi_tmp;
+            }
           }
         }
-      }
-      double tmpmult = eta_c(k_get,i) * Theta_c(j,l_get);
-      tilde_z = z_c(j,i) - mn_tmp;
-      tilde_prec = 1.0 / Sig0vec(j);
-      Sigma_tilde_inv += tilde_prec * tmpmult * tmpmult * XXt_c.slice(i);
-      mu_tilde += tmpmult * X_c.col(i) * tilde_z * tilde_prec;
+        double tmpmult = eta_c(k_get,i) * Theta_c(j,l_get);
+        tilde_z = z_c(j,i) - mn_tmp;
+        tilde_prec = 1.0 / Sig0vec(j);
+        Sigma_tilde_inv += tilde_prec * tmpmult * tmpmult * XXt_c.slice(i);
+        mu_tilde += tmpmult * X_c.col(i) * tilde_z * tilde_prec;
+      } // if( is_obs_j(i) == 1 )
     } // for(int i=0; i<N; i++)
   } // for(int j=0; j<P; j++)
   
@@ -413,14 +434,14 @@ arma::mat sample_betaxi_c(arma::mat z_c, arma::vec Sig0vec,
 arma::mat sample_beta_mu(arma::vec mu_0, arma::mat Lambda_0, 
                          double C, arma::vec beta_mean, arma::mat Sigma_beta) {
   /* Here we learn the population-level mean of the \beta_{c,lk} draws,
-  * i.e. \beta_{lk} from \beta_{c,lk} ~ N(\beta_{lk}, \Sigma_{\beta_{lk}}),
-  * given we observe \beta_{c,lk} for c=1,...,C,
-  * where the prior \beta_{lk} ~ N(\mu_0, \Lambda_0).
-  * 
-  * \beta_{lk} ~ N( \tilde{\Sigma} \tilde{\Mu}, \tilde{\Sigma})
-  * \tilde{\Mu} = \Lambda_0^{-1} \mu_0 + C \Sigma_{\beta_{lk}}^{-1} \bar{\beta_{c,lk}}
-  * \tilde{\Sigma}^{-1} = \Lambda_0^{-1} + C \Sigma_{\beta_{lk}}^{-1}
-  */
+   * i.e. \beta_{lk} from \beta_{c,lk} ~ N(\beta_{lk}, \Sigma_{\beta_{lk}}),
+   * given we observe \beta_{c,lk} for c=1,...,C,
+   * where the prior \beta_{lk} ~ N(\mu_0, \Lambda_0).
+   * 
+   * \beta_{lk} ~ N( \tilde{\Sigma} \tilde{\Mu}, \tilde{\Sigma})
+   * \tilde{\Mu} = \Lambda_0^{-1} \mu_0 + C \Sigma_{\beta_{lk}}^{-1} \bar{\beta_{c,lk}}
+   * \tilde{\Sigma}^{-1} = \Lambda_0^{-1} + C \Sigma_{\beta_{lk}}^{-1}
+   */
   arma::mat Lambda_tilde_inv = arma::inv(Lambda_0) + C*arma::inv(Sigma_beta);
   arma::vec mu_tilde = arma::solve(Lambda_0,mu_0) + C*arma::solve(Sigma_beta,beta_mean);
   return arma::mvnrnd(arma::solve(Lambda_tilde_inv,mu_tilde), arma::inv(Lambda_tilde_inv), 1);
@@ -462,21 +483,21 @@ double sample_sigsq(double a, double b, int n, double RSS) {
 
 
 /* *********** NEW/TEST DATA SAMPLER FUNCTIONS *********** 
-* 
-* Used for monte carlo samples of \xi_{c,i*} and \eta_{c,i*} 
-* for decedent i* having unknown COD (so done for each c in main sampler).
-* 
-*/
+ * 
+ * Used for monte carlo samples of \xi_{c,i*} and \eta_{c,i*} 
+ * for decedent i* having unknown COD (so done for each c in main sampler).
+ * 
+ */
 
 // [[Rcpp::export]]
 arma::mat sample_xi_istar(arma::cube beta_c, arma::vec X_istar) {
   /* 
-  * Sample \xi_{c,lk}(x_i*) where the result is a double for person i* having COD c.
-  * 
-  * The sampler are drawn from the "prior" on \xi;
-  * X_i, the B x 1 covariate vector (X_{i*,:})^T for death i* ; 
-  * beta_c is the B x L x K cube of cause-specific vectors of coefficients for the regression of \xi_{c,lk} ;
-  */
+   * Sample \xi_{c,lk}(x_i*) where the result is a double for person i* having COD c.
+   * 
+   * The sampler are drawn from the "prior" on \xi;
+   * X_i, the B x 1 covariate vector (X_{i*,:})^T for death i* ; 
+   * beta_c is the B x L x K cube of cause-specific vectors of coefficients for the regression of \xi_{c,lk} ;
+   */
   int B = beta_c.n_rows;
   int L = beta_c.n_cols;
   int K = beta_c.n_slices;
@@ -495,13 +516,13 @@ arma::mat sample_xi_istar(arma::cube beta_c, arma::vec X_istar) {
 // [[Rcpp::export]]
 arma::mat sample_psi_istar(arma::vec sig_sq_psi, arma::mat alpha_c, arma::vec X_istar, int fix_psi) {
   /* 
-  * Sample \xi_{c,lk}(x_i*) where the result is a double for person i* having COD c.
-  * 
-  * The sampler are drawn from the "prior" on \xi;
-  * sig_sq_xi is L x K, the variance terms associated with each entry of \psi ; 
-  * X_i, the B x 1 covariate vector (X_{i*,:})^T for death i* ; 
-  * beta_c is the B x L x K cube of cause-specific vectors of coefficients for the regression of \xi_{c,lk} ;
-  */
+   * Sample \xi_{c,lk}(x_i*) where the result is a double for person i* having COD c.
+   * 
+   * The sampler are drawn from the "prior" on \xi;
+   * sig_sq_xi is L x K, the variance terms associated with each entry of \psi ; 
+   * X_i, the B x 1 covariate vector (X_{i*,:})^T for death i* ; 
+   * beta_c is the B x L x K cube of cause-specific vectors of coefficients for the regression of \xi_{c,lk} ;
+   */
   int K = alpha_c.n_cols;
   arma::mat psi_istar(K,1);
   arma::vec alpha_ck;
@@ -529,7 +550,8 @@ Rcpp::List sample_z_mean_cov_all(Rcpp::List S_mat, Rcpp::List Omega_all, Rcpp::L
                                  arma::vec Sig0vec, Rcpp::List z_all_nominus, Rcpp::List z_all, int P,
                                  arma::vec is_binary, Rcpp::List mu_all, bool mu_collapse, Rcpp::List psi_all){
   /* 
-   * FIXME DESCRIBE!
+   * Sample z_all_nominus (i.e., including the mean mu_all), define z_all (z_all_nominus - mu_all),
+   * and return the mean and the covariance as well.
    */
   int num_causes = S_mat.size();
   double inf = std::numeric_limits<double>::infinity();
@@ -541,11 +563,11 @@ Rcpp::List sample_z_mean_cov_all(Rcpp::List S_mat, Rcpp::List Omega_all, Rcpp::L
   for(int c=0; c<num_causes; c++){
     // Initialize empty mean_all and cov_all arrays
     arma::mat mean_all_t(N(c),P);
-    arma::cube cov_all(P, P, N(c)); // FIXME better order?
+    arma::cube cov_all(P, P, N(c)); 
     // Save list element as matrix/vector for quick access later
     arma::mat S_mat_c = S_mat[c];
     arma::mat eta_all_c = eta_all[c];
-    arma::cube Omega_all_c = Omega_all[c]; // FIXME better order?
+    arma::cube Omega_all_c = Omega_all[c];
     arma::mat psi_all_c = psi_all[c];
     arma::mat psi_all_c_t = psi_all_c.t();
     // Update/sample things (provided to sampler, but also filled in)
@@ -559,20 +581,26 @@ Rcpp::List sample_z_mean_cov_all(Rcpp::List S_mat, Rcpp::List Omega_all, Rcpp::L
       arma::mat Si_vec = S_mat_c.row(i);
       arma::mat Omega_all_c_i = Omega_all_c.slice(i);
       for(int j=0; j<P; j++){
-        if( NumericVector::is_na( Si_vec(j) ) ){ // Impute z_{i,j} for missing s_{i,j}.
-          double mu_tmp = (Omega_all_c_i.row(j) * eta_all_c.col(i)).eval()(0);
+        if( NumericVector::is_na( Si_vec(j) ) & (!is_binary(j)) ){ // Impute z_{i,j} for missing s_{i,j}.
+          double mu_tmp = (Omega_all_c_i.row(j) * eta_all_c.col(i)).eval()(0) + mu_all_c_t(i,j);
           z_all_nominus_c_t(i,j) = rnormArma(mu_tmp, Sig0vec(j));
+          // Subtract off the mean from z_all_nominus to get z_all (no matter where z_all_nominus came from).
+          if( mu_collapse ){
+            z_all_c_t(i,j) = z_all_nominus_c_t(i,j);
+          } else{
+            z_all_c_t(i,j) = z_all_nominus_c_t(i,j) - mu_all_c_t(i,j); // Equal to z_all_nominus when mu is 0.
+          }
         } else{ // Sample z_{i,j} for binary j.
           if( is_binary(j) ){
             // Omega_all[[c]][j,,i] is 1 x K row vector
             // eta_all[[c]][,i] is K x 1 col vector
-            double mu_tmp = (Omega_all_c_i.row(j) * eta_all_c.col(i)).eval()(0);
+            double mu_tmp = (Omega_all_c_i.row(j) * eta_all_c.col(i)).eval()(0) + mu_all_c_t(i,j);
             double min_norm, max_norm;
             if( Si_vec(j) == 1 ){
               min_norm = 0; 
-              max_norm = inf;
+              max_norm = 6;//inf;
             } else {
-              min_norm = -inf; 
+              min_norm = -6;//inf; 
               max_norm = 0;
             }
             z_all_nominus_c_t(i,j) = rtruncnorm(mu_tmp, 1, min_norm, max_norm);
@@ -584,7 +612,7 @@ Rcpp::List sample_z_mean_cov_all(Rcpp::List S_mat, Rcpp::List Omega_all, Rcpp::L
             z_all_c_t(i,j) = z_all_nominus_c_t(i,j) - mu_all_c_t(i,j); // Equal to z_all_nominus when mu is 0.
           }
         }
-      } // FIXME mu_all_c and psi_all_c slow?
+      } // Note mu_all_c and psi_all_c may be slow.
       mean_all_t.row(i) = mu_all_c_t.row(i) + (Omega_all_c_i * (psi_all_c_t.row(i)).t()).t(); // Equal to \lambda\eta when mu is 0
       cov_all.slice(i) = Omega_all_c_i * (Omega_all_c_i).t();
       for(int j=0; j<P; j++){
@@ -614,7 +642,7 @@ arma::mat get_piSgivenY(int N_test, int num_causes, int P, int mc_tot, bool cov_
                         arma::vec is_binary){
   /* Replaces explicit Gibbs sampling from the multivariate normal dist'n 
    * with MC samples conditional on eta for test data.
-  */ 
+   */ 
   arma::mat pi_SgivenY(N_test, num_causes);
   pi_SgivenY.fill(0.0);
   arma::mat xi_star;
@@ -695,4 +723,5 @@ arma::mat get_piSgivenY(int N_test, int num_causes, int P, int mc_tot, bool cov_
   } // for( int c=0; c<num_causes; c++ )
   return(pi_SgivenY);
 }
+
 
