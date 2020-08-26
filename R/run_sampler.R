@@ -121,7 +121,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   N_obs_bysymp <- apply( do.call(rbind,lapply( S_mat_notna, function(x) apply(x, 2, sum) )), 2, sum )
   
   if(verbose){
-    if(mu_collapse){
+    if(!mu_collapse){
       print("mu_collapse=F (default) implies latent symptom model is z_i = mu_c[i] + Lambda_c[i] eta_i + epsilon_i, with eta_i~N(0,1).")
       print("To use latent symptom model z_i = mu_c[i] + Lambda_c[i] eta_i + epsilon_i, with eta_i~N(0,1), set mu_collapse=T")
       print("")
