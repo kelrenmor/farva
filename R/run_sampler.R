@@ -37,8 +37,6 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   
   # Number of Monte carlo samples to be used for probability calc of test data
   mc_tot = 200
-  # Assume phi_delta = phi_theta and delta_delta = delta_theta
-  prec_equal_deltaTheta = TRUE
   # Use MC samples (faster) for test data even when data are not mixed
   fast_test_samp = TRUE
   
@@ -555,34 +553,6 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
       }
     }
     
-    if( !prec_equal_deltaTheta ){    
-      # Sample each element of \phi_{\theta}
-      for(p in 1:P){
-        for(l in 1:L){
-          sum_tmp <- 0
-          for(c in 1:num_causes){
-            sum_tmp <- sum_tmp + (Theta_all[[c]][p,l]-Delta[p,l])^2
-          }
-          phi_theta[p,l] <- sample_phi_pl(nu_theta, tau_theta[l] * sum_tmp, num_causes)
-        }
-      }
-      
-      # Sample each element of L-vec \delta_{\theta} and calculate tau_theta (cum prod) on the way
-      Theta_cube <- array(unlist(Theta_all),
-                          dim = c(nrow(Theta_all[[1]]), ncol(Theta_all[[1]]), length(Theta_all)))
-      for(l in 1:L){
-        delta_theta[l] <- sample_delta_theta(a1_del_the, a2_del_the, Delta, Theta_cube,
-                                             phi_theta, delta_theta, l-1)
-        if(l==1){
-          # initialize tau_theta first value
-          tau_theta[l] <- delta_theta[l]
-        } else{
-          # update tau to be product of deltas as you go
-          tau_theta[l] <- tau_theta[l-1]*delta_theta[l]
-        }
-      }
-    }
-    
     ############ UPDATE \Delta_{c,pl} ############
     ############ and shrinkage params for each
     
@@ -596,57 +566,35 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
       }
     }
     
-    if( prec_equal_deltaTheta ){ # If Delta shares its precision parameters with Theta
-      
-      # Sample each element of \phi_{\theta} (use this for \phi_{\delta} too)
-      for(p in 1:P){
-        for(l in 1:L){
-          sum_tmp <- tau_theta[l]*(Delta[p,l])^2
-          for(c in 1:num_causes){
-            sum_tmp <- sum_tmp + tau_theta[l]*(Theta_all[[c]][p,l]-Delta[p,l])^2
-          }
-          phi_theta[p,l] <- sample_phi_pl(nu_theta, sum_tmp, num_causes+1)
-        }
-        phi_delta[p,] <- phi_theta[p,]
-      }  
-      
-      # Sample each element of L-vec \delta_{\theta} and calculate tau_theta (cum prod) on the way
-      Theta_cube <- array(c(unlist(Theta_all),rep(0,P*L)), 
-                          dim = c(nrow(Theta_all[[1]]), ncol(Theta_all[[1]]), length(Theta_all) + 1))
+    # Delta shares its precision parameters with Theta
+    # Sample each element of \phi_{\theta} (use this for \phi_{\delta} too)
+    for(p in 1:P){
       for(l in 1:L){
-        delta_theta[l] <- sample_delta_theta(a1_del_the, a2_del_the, Delta, Theta_cube,
-                                             phi_theta, delta_theta, l-1)
-        delta_delta[l] <- delta_theta[l]
-        if(l==1){
-          # initialize tau_theta first value
-          tau_theta[l] <- delta_theta[l]
-          tau_delta[l] <- tau_theta[l]
-        } else{ 
-          # update tau to be product of deltas as you go
-          tau_theta[l] <- tau_theta[l-1]*delta_theta[l]
-          tau_delta[l] <- tau_theta[l]
+        sum_tmp <- tau_theta[l]*(Delta[p,l])^2
+        for(c in 1:num_causes){
+          sum_tmp <- sum_tmp + tau_theta[l]*(Theta_all[[c]][p,l]-Delta[p,l])^2
         }
+        phi_theta[p,l] <- sample_phi_pl(nu_theta, sum_tmp, num_causes+1)
       }
-      
-    } else{ # If Delta has its own unique precision parameters
-      
-      # Sample each element of PxL matrix \phi_{\Delta}
-      for(p in 1:P){
-        for(l in 1:L){
-          phi_delta[p,l] <- sample_phi_pl(nu_delta, tau_delta[l] * (Delta[p,l]^2), 1)
-        }
+      phi_delta[p,] <- phi_theta[p,]
+    }  
+    
+    # Sample each element of L-vec \delta_{\theta} and calculate tau_theta (cum prod) on the way
+    Theta_cube <- array(c(unlist(Theta_all),rep(0,P*L)), 
+                        dim = c(nrow(Theta_all[[1]]), ncol(Theta_all[[1]]), length(Theta_all) + 1))
+    for(l in 1:L){
+      delta_theta[l] <- sample_delta_theta(a1_del_the, a2_del_the, Delta, Theta_cube,
+                                           phi_theta, delta_theta, l-1)
+      delta_delta[l] <- delta_theta[l]
+      if(l==1){
+        # initialize tau_theta first value
+        tau_theta[l] <- delta_theta[l]
+        tau_delta[l] <- tau_theta[l]
+      } else{ 
+        # update tau to be product of deltas as you go
+        tau_theta[l] <- tau_theta[l-1]*delta_theta[l]
+        tau_delta[l] <- tau_theta[l]
       }
-      
-      # Sample each element of L vector \delta_{\Delta} and calculate tau_delta (cum prod) on the way
-      for(l in 1:L){
-        delta_delta[l] <- sample_delta_Delta(a1_del_del, a2_del_del, Delta, phi_delta, delta_delta, l-1)
-        if(l==1){
-          tau_delta[l] <- delta_delta[l]
-        } else{ # update to be product as you go
-          tau_delta[l] <- tau_delta[l-1]*delta_delta[l]
-        }
-      }
-      
     }
     
     ############ UPDATE z_{ij} ############
