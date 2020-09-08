@@ -52,7 +52,7 @@ X_test[,1] <- 1*(age_test>=65); X_test[,2] <- 1-X_test[,1]
 # Note that because X_.._sig is set to NULL, the symptom-level covariance will not depend on age.
 farva_res = farva_run(S_mat=phmrc_train, X_all_mu=X_train, X_all_sig=NULL, 
                       S_test=phmrc_test, X_test_mu=X_test, X_test_sig=NULL, 
-                      save_num_tot=500, thin=10, burnin=5000, L=10, K=10, print_prog=T)
+                      save_num_tot=500, thin=10, burnin=5000, K=10, verbose=T)
 
 ################# Get out matrix of individual probabilities and CSMFs #################
 
