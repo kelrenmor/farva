@@ -1,4 +1,4 @@
-### Demonstration of how to use this package on the PHMRC data set.
+### Demonstration of how to use farva package on the PHMRC data set.
 ### For illustrative purposes, deaths from Mexico having observed 
 ### age data are extracted and the model is run with age impacting
 ### the symptom mean but not the covariance. 
@@ -6,6 +6,7 @@
 ################# Load required libraries and data #################
 
 rm(list=ls())
+set.seed(1204)
 
 # Install and load farva library, load other required libraries
 remotes::install_github('kelrenmor/farva', quiet=T, dependencies=T)
@@ -64,9 +65,14 @@ cod_probs = matrix(0, nrow=N_test, ncol=num_causes) # N_test by num_causes matri
 colnames(cod_probs) = 1:num_causes
 inds_match = match(colnames(cod_probs_test), colnames(cod_probs))
 cod_probs[,inds_match] = cod_probs_test
+# Output top cause accuracy
+acc_num(indiv_prob=cod_probs, true_causes=phmrc_test[,'Cause'],top_num=1)
 
 # Get model-predicted CSMF for the TEST data
 csmf_test = apply(farva_res$csmf_test_save,1,mean) # number of training causes length
 # As above, can 0-pad to get the CSMF where you assume no test death types that weren't in training set
 csmf_test_all = rep(0, num_causes) # num_causes length
 csmf_test_all[inds_match] = csmf_test 
+# Output CSMF accuracy
+tmp_causes = factor(phmrc_test[,'Cause'], levels=1:num_causes)
+csmf_accuracy(csmf_true=table(tmp_causes)/nrow(phmrc_test), csmf_compare=csmf_test_all)

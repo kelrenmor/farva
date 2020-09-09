@@ -24,7 +24,7 @@ remotes::install_github('kelrenmor/farva', quiet=T, dependencies=T)
 library(farva)
 ```
 
-An example using the FARVA model to analyze the PHMRC data from Mexico City is provided in the [examples/example_phmrc_run.R](examples/example_phmrc_run.R) file. This code estimates the individual probabilities and the CSMF for a hold-out 'test' set of the data.
+An example using the FARVA model to analyze the PHMRC data from Mexico City is provided in the [examples/example_phmrc_run.R](examples/example_phmrc_run.R) file. This code estimates the individual probabilities and the CSMF for a hold-out 'test' set of the data. An extension including cross validation to compare performance of models with/without age included as a covariate is provided in the [examples/example_phmrc_crossValidation.R](examples/example_phmrc_crossValidation.R) file. 
 
 -----------------------
 Original work Copyright (c) 2019 Kelly R. Moran
