@@ -710,7 +710,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     
     if(ss==1){ 
       ptm2 <- proc.time() - ptm 
-      print(paste('Collecting',nsamps,'samples is expected to take around',round( ptm2[3] / (60*60), 4),'hours'))
+      print(paste('Collecting',nsamps,'samples is expected to take around',round( nsamps*ptm2[3] / (60*60), 4),'hours'))
       if( verbose ){
         #print(paste("sample",ss,"of",nsamps))
         print(paste0(prcnt,"% done with sampling"))
