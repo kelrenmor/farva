@@ -121,7 +121,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   if(verbose){
     if(!mu_collapse){
       print("mu_collapse=F (default) implies latent symptom model is z_i = mu_c[i] + Lambda_c[i] eta_i + epsilon_i, with eta_i~N(0,1).")
-      print("To use latent symptom model z_i = mu_c[i] + Lambda_c[i] eta_i + epsilon_i, with eta_i~N(0,1), set mu_collapse=T")
+      print("To use latent symptom model z_i = Lambda_c[i] eta_c[i] + epsilon_i, with eta_i~N(\nu_i,1), set mu_collapse=T")
       print("")
     } else{
       print("mu_collapse=T implies latent symptom model is z_i = Lambda_c[i] eta_c[i] + epsilon_i, with eta_i~N(\nu_i,1).")
