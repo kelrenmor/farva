@@ -53,11 +53,13 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     nullmu = is.null(X_all_mu)
     nullsig = is.null(X_all_sig)
     N_sum = nrow(S_mat)
-    if('COD' %in% colnames(S_mat)){
-      ind_rm = which(colnames(S_mat)=='COD')
-    } else{
+    if ("COD" %in% colnames(S_mat)) {
+      ind_rm = which(colnames(S_mat) == "COD")
+    } else if ("Cause" %in% colnames(S_mat)) {
+      ind_rm = which(colnames(S_mat) == "Cause")
+    } else {
       ind_rm = 1
-      print("No column named 'COD', so assuming first column of S_mat is COD.")
+      cat("No column named 'COD' or 'Cause', so assuming first column of S_mat is COD.\n")
     }
     if( !nullmu ){if( !(N_sum==nrow(X_all_mu)) ){stop("Need nrow(X_all_mu) to equal nrow(S_mat)")}}
     if( !nullsig ){if( !(N_sum==nrow(X_all_sig)) ){stop("Need nrow(X_all_sig) to equal nrow(S_mat)")}}
@@ -77,7 +79,8 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     if( !nullmu ){X_all_mu = X_all_mu_tmp} # replace X_all_mu with list version!
     if( !nullsig ){X_all_sig = X_all_sig_tmp} # replace X_all_sig with list version!
   } else{
-    un_cods = NULL
+    un_cods = 1:num_causes
+    ind_rm = 1
   }
   
   # Get dimensions of things
@@ -95,6 +98,17 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   }
   B_mu <- dim(X_all_mu[[1]])[2]; cov_incl = (B_mu>1) 
   B_sig <- dim(X_all_sig[[1]])[2]
+  
+  # Check columns of S_test to see if we need to remove a COD column
+  if (!is.null(S_test)) {
+    P_test <- ncol(S_test)
+    if (P_test == (P + 1)) {
+      S_test = S_test[, -ind_rm, drop=F]
+    }
+    else if (P_test != P) {
+      stop("The number of columns of S_test must match that of the training data.")
+    }
+  }
   
   # Data structure (figure out which variables are BINARY)
   is_binary <- rep(T,P)
@@ -118,15 +132,12 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   }
   N_obs_bysymp <- apply( do.call(rbind,lapply( S_mat_notna, function(x) apply(x, 2, sum) )), 2, sum )
   
-  if(verbose){
-    if(!mu_collapse){
-      print("mu_collapse=F (default) implies latent symptom model is z_i = mu_c[i] + Lambda_c[i] eta_i + epsilon_i, with eta_i~N(0,1).")
-      print("To use latent symptom model z_i = Lambda_c[i] eta_c[i] + epsilon_i, with eta_i~N(\nu_i,1), set mu_collapse=T")
-      print("")
-    } else{
-      print("mu_collapse=T implies latent symptom model is z_i = Lambda_c[i] eta_c[i] + epsilon_i, with eta_i~N(\nu_i,1).")
-      print("To use latent symptom model z_i = mu_c[i] + Lambda_c[i] eta_i + epsilon_i, with eta_i~N(0,1), set mu_collapse=F")
-      print("")
+  if (verbose) {
+    if (!mu_collapse) {
+      cat("Setting mu_collapse=F (default) implies a latent symptom model of z_i = mu_c[i] + Lambda_c[i] eta_i + epsilon_i, with eta_i~N(0,1).\n")
+    }
+    else {
+      cat("Setting mu_collapse=T implies a latent symptom model of z_i = Lambda_c[i] eta_c[i] + epsilon_i, with eta_i~N(\nu_i,1).\n")
     }
   }
   
@@ -194,10 +205,10 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     save_inds_mu=list(); for(c in 1:num_causes){ save_inds_mu[[c]]=1 }
   } else if( is.list(save_inds_mu) ){
     if( !(length(save_inds_mu)==num_causes) ){
-      print("Need save_inds_mu to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
+      stop("Need save_inds_mu to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
     }
   } else{
-    print("Need save_inds_mu to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
+    stop("Need save_inds_mu to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
   }
   # Make list of save_inds_sig (if not provided) specifying individual-specific indices to save
   if( (save_inds_sig=="all")[1] ){
@@ -208,10 +219,10 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
     save_inds_sig=list(); for(c in 1:num_causes){ save_inds_sig[[c]]=1 }
   } else if( is.list(save_inds_sig) ){
     if( !(length(save_inds_sig)==num_causes) ){
-      print("Need save_inds_sig to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
+      stop("Need save_inds_sig to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
     }
   } else{
-    print("Need save_inds_sig to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
+    stop("Need save_inds_sig to be 'all', 'unique', 'first', or num_causes list of which indices to save.")
   }
   
   # Initialize parameters using set hyperparameter values
@@ -227,10 +238,11 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   # Determine how many samples are to be saved through sampler
   # nsamps is the total number of samples (including burnin, thinned, etc) from which saved samples are pulled.
   nsamps <- burnin+save_num_tot*thin
-  if(verbose){
-    print(paste("Total number of samples will be:", nsamps))
-    print(paste("Total saved draws will be:", save_num_tot))
-    print("")
+  if (verbose) {
+    cat(paste0("Total number of samples will be ", nsamps, 
+               ", with the first ", burnin, " being discarded as burn-in "))
+    cat(paste0("and 1 in every ", thin, " thereafter saved for a total of ", 
+               save_num_tot, " retained samples.\n"))
   }
   
   # Set up values to be used in the sampler loop for saving things
@@ -260,10 +272,8 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
   ptm <- proc.time()
   for(ss in 1:nsamps){
     
-    if( ss%in%ten_perc & verbose & (!(ss==1)) ){ 
-      #print(paste("Sample",ss,"of",nsamps)) 
-      prcnt = prcnt + 10
-      print(paste0(prcnt,"% done with sampling"))
+    if (verbose) {
+      cat(paste("Sample", ss, "of", nsamps, "\n"))
     }
     
     ############ UPDATE \mu_{c,j} ############
@@ -636,7 +646,7 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
           }
         }
       }
-      print(paste("bad_z=",bad_z,sep=""))
+      cat(paste("Warning: bad_z=",bad_z,sep=""))
     }
     
     ############ CLEANUP AND SAVE, AND SAMPLE FOR Y_TEST ############
@@ -708,17 +718,14 @@ farva_run <- function(S_mat, X_all_mu=NULL, X_all_sig=NULL,
       save_num = save_num+1
     }
     
-    if(ss==1){ 
+    if(ss==1){ # Print timing results.
       ptm2 <- proc.time() - ptm 
-      print(paste('Collecting',nsamps,'samples is expected to take around',round( nsamps*ptm2[3] / (60*60), 4),'hours'))
-      if( verbose ){
-        #print(paste("sample",ss,"of",nsamps))
-        print(paste0(prcnt,"% done with sampling"))
-      }
+      time_sec = (nsamps-save_num_tot)*ptm2[3] + 6*save_num_tot*ptm2[3] # note slower predictive stage
+      cat(paste('Collecting',nsamps,'samples is expected to take around',round(time_sec/(60*60),2),'hours.\n'))
     }
     
   } # for(ss in 1:nsamps)
-  if( verbose ){ print(paste0(100,"% done with sampling")) }
+  if (verbose) { cat("Done with sampling!\n") }
   # Get posterior mean from ongoing sum of select parameters
   Omega_all_post <- lapply(Omega_all_post, function(x) x/postSavesnum)
   eta_all_post <- lapply(eta_all_post, function(x) x/postSavesnum)

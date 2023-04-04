@@ -3,7 +3,7 @@ run_sampler_init <- function(S_mat, L, K, P, N, num_causes, B_sig, B_mu,
                              nu_delta, nu_theta, a_sigsq, b_sigsq,
                              mu_collapse, is_binary){
 
-  library(MCMCpack)
+  suppressMessages( library(MCMCpack) )
   
   # Initialize everything based on its prior!
   # Unless you're in debug mode, then initialize by just random sampling N(0,1)
